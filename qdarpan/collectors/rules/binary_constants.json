@@ -1,0 +1,111 @@
+{
+  "$comment": "FindCrypt-style constant signatures. These are what let the ELF collector say something useful about a stripped or statically linked binary, where DT_NEEDED and .dynsym give nothing. Each entry names the table it comes from so a hit can be argued for rather than merely asserted.",
+  "version": "2026-09-07",
+
+  "constants": [
+    {
+      "id": "const.aes.sbox",
+      "algorithm": "AES",
+      "description": "AES forward S-box, first 16 bytes (FIPS 197 Figure 7)",
+      "hex": "637c777bf26b6fc53001672bfed7ab76",
+      "functions": ["encrypt"]
+    },
+    {
+      "id": "const.aes.inv_sbox",
+      "algorithm": "AES",
+      "description": "AES inverse S-box, first 16 bytes (FIPS 197 Figure 14)",
+      "hex": "52096ad53036a538bf40a39e81f3d7fb",
+      "functions": ["decrypt"]
+    },
+    {
+      "id": "const.aes.te0",
+      "algorithm": "AES",
+      "description": "AES Te0 T-table, first entries (common OpenSSL/mbedTLS layout)",
+      "hex": "c66363a5f87c7c84ee777799f67b7b8d",
+      "functions": ["encrypt"]
+    },
+    {
+      "id": "const.sha256.k",
+      "algorithm": "SHA-2",
+      "parameters": { "key_size": 256 },
+      "description": "SHA-256 round constants K[0..3] (FIPS 180-4)",
+      "hex": "428a2f9871374491b5c0fbcfe9b5dba5",
+      "functions": ["digest"]
+    },
+    {
+      "id": "const.sha512.k",
+      "algorithm": "SHA-2",
+      "parameters": { "key_size": 512 },
+      "description": "SHA-512 round constants K[0..1] (FIPS 180-4)",
+      "hex": "428a2f98d728ae227137449123ef65cd",
+      "functions": ["digest"]
+    },
+    {
+      "id": "const.sha1.k",
+      "algorithm": "SHA-1",
+      "description": "SHA-1 round constants K0..K3 (FIPS 180-4)",
+      "hex": "5a8279996ed9eba18f1bbcdcca62c1d6",
+      "functions": ["digest"]
+    },
+    {
+      "id": "const.md5.t",
+      "algorithm": "MD5",
+      "description": "MD5 T-table T[1..4], little-endian words (RFC 1321)",
+      "hex": "78a46ad756b7c7e8db702024eecebdc1",
+      "functions": ["digest"]
+    },
+    {
+      "id": "const.md5.t_be",
+      "algorithm": "MD5",
+      "description": "MD5 T-table T[1..4], big-endian words (RFC 1321)",
+      "hex": "d76aa478e8c7b756242070dbc1bdceee",
+      "functions": ["digest"]
+    },
+    {
+      "id": "const.des.sbox1",
+      "algorithm": "DES",
+      "description": "DES S-box 1, first row (FIPS 46-3)",
+      "hex": "0e040d01020f0b08030a060c05090007",
+      "functions": ["encrypt"]
+    },
+    {
+      "id": "const.blowfish.p",
+      "algorithm": "Blowfish",
+      "description": "Blowfish P-array, first four words (digits of pi)",
+      "hex": "243f6a8885a308d313198a2e03707344",
+      "functions": ["encrypt"]
+    },
+    {
+      "id": "const.chacha20.sigma",
+      "algorithm": "ChaCha20",
+      "description": "ChaCha20/Salsa20 sigma constant 'expand 32-byte k'",
+      "hex": "657870616e642033322d62797465206b",
+      "functions": ["encrypt"]
+    },
+    {
+      "id": "const.sha3.rc",
+      "algorithm": "SHA-3",
+      "description": "Keccak round constants RC[0..1]",
+      "hex": "01000000000000008280000000000000",
+      "functions": ["digest"]
+    }
+  ],
+
+  "needed_libraries": {
+    "$comment": "DT_NEEDED sonames that prove a crypto library is linked.",
+    "libcrypto": "openssl",
+    "libssl": "openssl",
+    "libsodium": "libsodium",
+    "libmbedcrypto": "mbedtls",
+    "libmbedtls": "mbedtls",
+    "libmbedx509": "mbedtls",
+    "libgcrypt": "libgcrypt",
+    "libgnutls": "gnutls",
+    "libnss3": "nss",
+    "libsoftokn3": "nss",
+    "libfreebl3": "nss",
+    "libcryptopp": "cryptopp",
+    "libwolfssl": "wolfssl",
+    "libtomcrypt": "libtomcrypt"
+  }
+}

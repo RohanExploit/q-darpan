@@ -1,0 +1,77 @@
+{
+  "$comment": "Regulatory and threat-timeline policy. Every date here is externally sourced; nothing is invented. Operators override criticality tiers and migration effort for their own estate.",
+  "version": "2026-09-07",
+  "reference_year": 2026,
+
+  "quantum_timeline": {
+    "source": "Global Risk Institute, Quantum Threat Timeline Report 2025 -- expert survey range",
+    "note": "Z is contested. Q-DARPAN evaluates Mosca's inequality against all three scenarios and reports which of them trip, rather than asserting a single date.",
+    "scenarios": {
+      "optimistic": { "years_to_crqc": 20, "label": "CRQC arrives late (2046)" },
+      "median": { "years_to_crqc": 14, "label": "CRQC arrives around 2040" },
+      "pessimistic": { "years_to_crqc": 9, "label": "CRQC arrives early (2035)" }
+    }
+  },
+
+  "regulatory_milestones": [
+    {
+      "id": "dst-nqm-vendor-cbom",
+      "year": 2027,
+      "label": "DST NQM: vendor CBOMs expected from FY 2027-28",
+      "source": "DST National Quantum Mission, Quantum Safe Ecosystem Task Force report, 4 Feb 2026",
+      "applies_to": "all"
+    },
+    {
+      "id": "nist-ir8547-deprecated",
+      "year": 2030,
+      "label": "NIST IR 8547 (ipd): 112-bit RSA/ECC deprecated after 2030",
+      "source": "NIST IR 8547 Initial Public Draft, 12 Nov 2024",
+      "applies_to": "quantum_vulnerable_112"
+    },
+    {
+      "id": "nist-ir8547-disallowed",
+      "year": 2035,
+      "label": "NIST IR 8547 (ipd): quantum-vulnerable algorithms disallowed after 2035",
+      "source": "NIST IR 8547 Initial Public Draft, 12 Nov 2024",
+      "applies_to": "quantum_vulnerable"
+    }
+  ],
+
+  "criticality_tiers": {
+    "$comment": "Y in Mosca's inequality: how many years the protected data must stay confidential.",
+    "critical": { "data_shelf_life_years": 25, "label": "National security, health records, long-lived PKI roots" },
+    "high": { "data_shelf_life_years": 15, "label": "Financial records, citizen identity data" },
+    "medium": { "data_shelf_life_years": 7, "label": "Internal business data" },
+    "low": { "data_shelf_life_years": 2, "label": "Ephemeral session data, public content" }
+  },
+  "default_criticality": "high",
+
+  "migration_effort_years": {
+    "$comment": "X in Mosca's inequality: how long this class of asset takes to migrate. Defaults are conservative; override per target in an operator policy file.",
+    "by_surface": {
+      "tls": 2,
+      "source": 3,
+      "elf": 4,
+      "container": 3
+    },
+    "by_asset_kind": {
+      "certificate": 2,
+      "protocol": 2,
+      "algorithm": 3,
+      "related-crypto-material": 4,
+      "library": 3
+    },
+    "default": 3
+  },
+
+  "confidence_floor": 0.35,
+
+  "risk_tiers": {
+    "$comment": "How Mosca scenarios and classical status combine into a reported tier.",
+    "critical": "Classically broken or disallowed, or Mosca trips under all three scenarios",
+    "high": "Quantum-broken and Mosca trips under the median scenario",
+    "medium": "Quantum-broken and Mosca trips only under the pessimistic scenario",
+    "low": "Quantum-weakened but Mosca does not trip",
+    "pq-safe": "Not quantum-vulnerable at current understanding"
+  }
+}

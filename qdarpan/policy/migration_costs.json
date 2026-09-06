@@ -1,0 +1,86 @@
+{
+  "$comment": "Concrete cost of each classical -> post-quantum swap. Byte sizes are from the FIPS standards themselves; a migration plan that ignores them under-budgets bandwidth, certificate stores and embedded flash.",
+  "version": "2026-09-07",
+  "sources": {
+    "FIPS 203": "Module-Lattice-Based Key-Encapsulation Mechanism Standard, NIST, Aug 2024",
+    "FIPS 204": "Module-Lattice-Based Digital Signature Standard, NIST, Aug 2024",
+    "FIPS 205": "Stateless Hash-Based Digital Signature Standard, NIST, Aug 2024",
+    "RFC 10024": "PQ/T Hybrid Key Agreement Mechanisms for TLS 1.3, IETF, Aug 2026",
+    "RFC 9954": "Hybrid key exchange framework for TLS 1.3"
+  },
+
+  "algorithm_sizes_bytes": {
+    "$comment": "public_key / private_key / signature or ciphertext, in bytes.",
+    "RSA-2048": { "public_key": 256, "private_key": 1190, "signature": 256 },
+    "RSA-3072": { "public_key": 384, "private_key": 1770, "signature": 384 },
+    "RSA-4096": { "public_key": 512, "private_key": 2350, "signature": 512 },
+    "ECDSA-P256": { "public_key": 64, "private_key": 32, "signature": 64 },
+    "ECDSA-P384": { "public_key": 96, "private_key": 48, "signature": 96 },
+    "ECDSA-P521": { "public_key": 132, "private_key": 66, "signature": 132 },
+    "EdDSA-Ed25519": { "public_key": 32, "private_key": 32, "signature": 64 },
+    "ECDH-P256": { "public_key": 64, "private_key": 32, "ciphertext": 64 },
+    "X25519": { "public_key": 32, "private_key": 32, "ciphertext": 32 },
+    "DH-2048": { "public_key": 256, "private_key": 256, "ciphertext": 256 },
+
+    "ML-KEM-512": { "public_key": 800, "private_key": 1632, "ciphertext": 768 },
+    "ML-KEM-768": { "public_key": 1184, "private_key": 2400, "ciphertext": 1088 },
+    "ML-KEM-1024": { "public_key": 1568, "private_key": 3168, "ciphertext": 1568 },
+    "ML-DSA-44": { "public_key": 1312, "private_key": 2560, "signature": 2420 },
+    "ML-DSA-65": { "public_key": 1952, "private_key": 4032, "signature": 3309 },
+    "ML-DSA-87": { "public_key": 2592, "private_key": 4896, "signature": 4627 },
+    "SLH-DSA-128s": { "public_key": 32, "private_key": 64, "signature": 7856 },
+    "SLH-DSA-128f": { "public_key": 32, "private_key": 64, "signature": 17088 },
+    "SLH-DSA-192s": { "public_key": 48, "private_key": 96, "signature": 16224 },
+    "SLH-DSA-256s": { "public_key": 64, "private_key": 128, "signature": 29792 },
+
+    "X25519MLKEM768": { "public_key": 1216, "private_key": 2432, "ciphertext": 1120 },
+    "SecP256r1MLKEM768": { "public_key": 1249, "private_key": 2432, "ciphertext": 1153 },
+    "SecP384r1MLKEM1024": { "public_key": 1665, "private_key": 3216, "ciphertext": 1665 }
+  },
+
+  "recommendations": {
+    "$comment": "Keyed by algorithm family. 'hybrid' is the RFC 10024 option where a TLS handshake is involved.",
+    "RSA": {
+      "signature": { "target": "ML-DSA-65", "standard": "FIPS 204", "rationale": "Lattice signature at NIST level 3; the general-purpose replacement." },
+      "key-agree": { "target": "ML-KEM-768", "hybrid": "X25519MLKEM768", "standard": "FIPS 203", "rationale": "ML-KEM-768 at NIST level 3; deploy hybrid first per RFC 10024 so a lattice break does not regress security." },
+      "pke": { "target": "ML-KEM-768", "hybrid": "X25519MLKEM768", "standard": "FIPS 203", "rationale": "RSA key transport has no direct PQ analogue; restructure to a KEM." }
+    },
+    "ECDSA": {
+      "signature": { "target": "ML-DSA-65", "standard": "FIPS 204", "alternative": "SLH-DSA-128s", "alternative_rationale": "Prefer SLH-DSA for firmware and root-of-trust signing: conservative hash-based security, tiny public key, at the cost of a 7856 B signature." }
+    },
+    "EdDSA": {
+      "signature": { "target": "ML-DSA-65", "standard": "FIPS 204", "alternative": "SLH-DSA-128s" }
+    },
+    "DSA": {
+      "signature": { "target": "ML-DSA-65", "standard": "FIPS 204", "rationale": "DSA is already deprecated classically; migrate directly to ML-DSA." }
+    },
+    "ECDH": {
+      "key-agree": { "target": "ML-KEM-768", "hybrid": "X25519MLKEM768", "standard": "FIPS 203" }
+    },
+    "X25519": {
+      "key-agree": { "target": "ML-KEM-768", "hybrid": "X25519MLKEM768", "standard": "FIPS 203" }
+    },
+    "DH": {
+      "key-agree": { "target": "ML-KEM-768", "hybrid": "X25519MLKEM768", "standard": "FIPS 203" }
+    },
+    "AES": {
+      "block-cipher": { "target": "AES-256", "standard": "FIPS 197", "rationale": "Grover halves the effective key length. AES-128 drops to 64-bit quantum security; AES-256 retains 128." }
+    },
+    "3DES": {
+      "block-cipher": { "target": "AES-256", "standard": "FIPS 197", "rationale": "Already disallowed by NIST SP 800-131A Rev.2 after 2023, quantum considerations aside." }
+    },
+    "DES": { "block-cipher": { "target": "AES-256", "standard": "FIPS 197" } },
+    "RC4": { "stream-cipher": { "target": "ChaCha20", "rationale": "RC4 is prohibited in TLS by RFC 7465." } },
+    "Blowfish": { "block-cipher": { "target": "AES-256", "standard": "FIPS 197" } },
+    "MD5": { "hash": { "target": "SHA-256", "standard": "FIPS 180-4", "rationale": "Classically broken; not a quantum issue." } },
+    "SHA-1": { "hash": { "target": "SHA-256", "standard": "FIPS 180-4", "rationale": "Classically broken; not a quantum issue." } }
+  },
+
+  "latency_notes": {
+    "$comment": "Order-of-magnitude guidance only. Q-DARPAN reports byte deltas as measured facts and latency as a qualitative note, because handshake latency depends on the operator's network, not on the algorithm alone.",
+    "ML-KEM-768": "Keygen and encapsulation are faster than X25519 in most software stacks; the cost is bytes on the wire, not CPU.",
+    "ML-DSA-65": "Signing and verification are competitive with ECDSA; the cost is the 3309 B signature.",
+    "SLH-DSA-128s": "Signing is orders of magnitude slower than ECDSA. Acceptable for firmware signed once, not for per-connection use.",
+    "X25519MLKEM768": "Adds roughly 1.1 kB to the TLS ClientHello and the same to the server response, which can push the ClientHello past a single MTU."
+  }
+}
