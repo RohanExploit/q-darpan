@@ -252,6 +252,11 @@ class ContainerCollector(Collector):
         name_field, version_field = ("Package", "Version") if kind == "dpkg" else ("P", "V")
         seen: Set[Tuple[str, str]] = set()
 
+        # Normalise line endings before splitting on blank lines. A database
+        # carrying CRLF would otherwise parse as one enormous stanza and yield
+        # nothing at all, silently losing every package in the image.
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+
         for stanza in text.split("\n\n"):
             fields: Dict[str, str] = {}
             for line in stanza.splitlines():

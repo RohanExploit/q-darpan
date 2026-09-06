@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from .canonical import Registry, UnknownAlgorithm, default_registry
+from .ir import AssetKind
 from .normalise import MergedFinding
 
 POLICY_DIR = Path(__file__).parent / "policy"
@@ -344,7 +345,13 @@ def assess_all(
     registry: Optional[Registry] = None,
     criticality_by_target: Optional[Mapping[str, str]] = None,
 ) -> List[RiskAssessment]:
-    """Score every finding, ordered most urgent first."""
+    """Score every finding, ordered most urgent first.
+
+    Library findings are excluded. A Go ``crypto/md5`` import or a linked
+    ``libcrypto`` proves a library is present; it is not itself an algorithm
+    instance, and scoring it would double-count the real call sites the same
+    scan already found. Libraries stay in the CBOM as inventory.
+    """
     policy = policy or Policy.load()
     registry = registry or default_registry()
     criticality_by_target = criticality_by_target or {}
@@ -357,6 +364,7 @@ def assess_all(
             criticality=criticality_by_target.get(item.finding.target_id),
         )
         for item in merged
+        if item.finding.asset_kind is not AssetKind.LIBRARY
     ]
     results.sort(
         key=lambda r: (TIER_ORDER.get(r.tier, 9), -r.finding.confidence, r.finding.finding.bom_ref())

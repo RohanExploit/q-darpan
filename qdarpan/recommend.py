@@ -14,15 +14,48 @@ does not budget for that will fail in the field rather than on paper.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from .canonical import Registry, UnknownAlgorithm, default_registry
+from .ir import CryptoFunction
 from .normalise import MergedFinding, blast_radius
 from .risk import TIER_ORDER, RiskAssessment
 
 POLICY_DIR = Path(__file__).parent / "policy"
+
+_PUNCTUATION = re.compile(r"[^a-z0-9+]")
+
+
+def _squash(value: str) -> str:
+    return _PUNCTUATION.sub("", str(value).strip().lower())
+
+#: Observed crypto function -> the recommendation-table roles it implies, most
+#: specific first. Keygen and generate are deliberately absent: generating a key
+#: says nothing about whether it will sign or encapsulate.
+_FUNCTION_ROLES = {
+    CryptoFunction.SIGN: ("signature",),
+    CryptoFunction.VERIFY: ("signature",),
+    CryptoFunction.ENCAPSULATE: ("kem", "key-agree"),
+    CryptoFunction.DECAPSULATE: ("kem", "key-agree"),
+    CryptoFunction.KEYDERIVE: ("key-agree", "kdf"),
+    CryptoFunction.ENCRYPT: ("pke", "block-cipher", "stream-cipher", "ae"),
+    CryptoFunction.DECRYPT: ("pke", "block-cipher", "stream-cipher", "ae"),
+    CryptoFunction.DIGEST: ("hash",),
+    CryptoFunction.TAG: ("mac",),
+}
+
+
+def roles_for(functions) -> List[str]:
+    """Turn observed crypto functions into ordered recommendation-table roles."""
+    roles: List[str] = []
+    for function in sorted(functions, key=lambda f: f.value):
+        for role in _FUNCTION_ROLES.get(function, ()):
+            if role not in roles:
+                roles.append(role)
+    return roles
 
 
 @dataclass(frozen=True)
@@ -118,6 +151,7 @@ class CostModel:
 
     def __init__(self, data: Mapping[str, Any]):
         self._sizes = data["algorithm_sizes_bytes"]
+        self._squashed_sizes = {_squash(k): v for k, v in self._sizes.items()}
         self._recommendations = data["recommendations"]
         self._latency = data.get("latency_notes", {})
         self.version = data.get("version", "unknown")
@@ -130,7 +164,16 @@ class CostModel:
             return cls(json.load(handle))
 
     def sizes(self, name: str) -> Mapping[str, int]:
-        return self._sizes.get(name, {})
+        """Look up byte sizes, tolerating punctuation differences.
+
+        The canonical display name is ``ECDSA-P-256`` while the FIPS size table
+        is keyed ``ECDSA-P256``. Without this the cost column silently reads
+        "-" for every elliptic-curve row, which is exactly the number an
+        operator is here for.
+        """
+        if name in self._sizes:
+            return self._sizes[name]
+        return self._squashed_sizes.get(_squash(name), {})
 
     def _deltas(self, current: str, target: str) -> List[SizeDelta]:
         """Compare only the fields both algorithms actually define.
@@ -147,23 +190,37 @@ class CostModel:
         return deltas
 
     def recommend(
-        self, family: str, primitive: str, current_name: str
+        self, family: str, current_name: str, roles: Sequence[str] = ()
     ) -> Optional[Recommendation]:
+        """Pick the replacement for one algorithm in one role.
+
+        ``roles`` are derived from the crypto functions actually observed at the
+        call site. They decide the answer for families that serve more than one
+        purpose: RSA is filed in the registry under ``pke``, but an RSA
+        *signature* must migrate to ML-DSA, not to ML-KEM.
+
+        With no observed role the first entry in the family's table wins.
+        ``migration_costs.json`` orders each family by its likeliest deployed
+        role for exactly this case -- RSA leads with ``signature`` because
+        certificates are where it overwhelmingly turns up.
+        """
         by_family = self._recommendations.get(family)
         if not by_family:
             return None
 
-        entry = by_family.get(primitive)
+        entry = None
+        for role in roles:
+            if role in by_family:
+                entry = by_family[role]
+                break
         if entry is None:
-            # A family may be registered under one primitive but detected under
-            # another -- an RSA key seen in a certificate is a signature even
-            # though the registry files RSA under pke. Fall back rather than
-            # dropping the recommendation.
             entry = next(iter(by_family.values()), None)
         if entry is None:
             return None
 
         target = entry["target"]
+        if _squash(target) == _squash(current_name):
+            return None
         return Recommendation(
             target=target,
             standard=entry.get("standard"),
@@ -194,7 +251,7 @@ def recommend_for(
     if canonical.quantum_status == "safe" and not canonical.is_classically_unsound:
         return None
 
-    return costs.recommend(canonical.family, canonical.primitive.value, canonical.name)
+    return costs.recommend(canonical.family, canonical.name, roles_for(finding.functions))
 
 
 def build_queue(

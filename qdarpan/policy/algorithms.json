@@ -8,9 +8,16 @@
       "quantum_attack": "shor",
       "classical_status": "ok",
       "parameter": "key_size",
-      "security_bits": { "1024": 80, "2048": 112, "3072": 128, "4096": 152, "7680": 192 },
-      "default_parameter": 2048,
-      "oids": { "*": "1.2.840.113549.1.1.1" }
+      "security_bits": {
+        "1024": 80,
+        "2048": 112,
+        "3072": 128,
+        "4096": 152,
+        "7680": 192
+      },
+      "oids": {
+        "*": "1.2.840.113549.1.1.1"
+      }
     },
     "DSA": {
       "primitive": "signature",
@@ -18,9 +25,14 @@
       "quantum_attack": "shor",
       "classical_status": "deprecated",
       "parameter": "key_size",
-      "security_bits": { "1024": 80, "2048": 112, "3072": 128 },
-      "default_parameter": 2048,
-      "oids": { "*": "1.2.840.10040.4.1" }
+      "security_bits": {
+        "1024": 80,
+        "2048": 112,
+        "3072": 128
+      },
+      "oids": {
+        "*": "1.2.840.10040.4.1"
+      }
     },
     "DH": {
       "primitive": "key-agree",
@@ -28,9 +40,15 @@
       "quantum_attack": "shor",
       "classical_status": "ok",
       "parameter": "key_size",
-      "security_bits": { "1024": 80, "2048": 112, "3072": 128, "4096": 152 },
-      "default_parameter": 2048,
-      "oids": { "*": "1.2.840.113549.1.3.1" }
+      "security_bits": {
+        "1024": 80,
+        "2048": 112,
+        "3072": 128,
+        "4096": 152
+      },
+      "oids": {
+        "*": "1.2.840.113549.1.3.1"
+      }
     },
     "ECDSA": {
       "primitive": "signature",
@@ -39,11 +57,18 @@
       "classical_status": "ok",
       "parameter": "curve",
       "security_bits": {
-        "P-192": 96, "P-224": 112, "P-256": 128, "P-384": 192, "P-521": 256,
-        "secp256k1": 128, "brainpoolP256r1": 128, "brainpoolP384r1": 192
+        "P-192": 96,
+        "P-224": 112,
+        "P-256": 128,
+        "P-384": 192,
+        "P-521": 256,
+        "secp256k1": 128,
+        "brainpoolP256r1": 128,
+        "brainpoolP384r1": 192
       },
-      "default_parameter": "P-256",
-      "oids": { "*": "1.2.840.10045.2.1" }
+      "oids": {
+        "*": "1.2.840.10045.2.1"
+      }
     },
     "ECDH": {
       "primitive": "key-agree",
@@ -52,11 +77,18 @@
       "classical_status": "ok",
       "parameter": "curve",
       "security_bits": {
-        "P-192": 96, "P-224": 112, "P-256": 128, "P-384": 192, "P-521": 256,
-        "secp256k1": 128, "X25519": 128, "X448": 224
+        "P-192": 96,
+        "P-224": 112,
+        "P-256": 128,
+        "P-384": 192,
+        "P-521": 256,
+        "secp256k1": 128,
+        "X25519": 128,
+        "X448": 224
       },
-      "default_parameter": "P-256",
-      "oids": { "*": "1.3.132.1.12" }
+      "oids": {
+        "*": "1.3.132.1.12"
+      }
     },
     "EdDSA": {
       "primitive": "signature",
@@ -64,17 +96,26 @@
       "quantum_attack": "shor",
       "classical_status": "ok",
       "parameter": "curve",
-      "security_bits": { "Ed25519": 128, "Ed448": 224 },
-      "default_parameter": "Ed25519",
-      "oids": { "Ed25519": "1.3.101.112", "Ed448": "1.3.101.113" }
+      "security_bits": {
+        "Ed25519": 128,
+        "Ed448": 224
+      },
+      "oids": {
+        "Ed25519": "1.3.101.112",
+        "Ed448": "1.3.101.113"
+      }
     },
     "X25519": {
       "primitive": "key-agree",
       "quantum_status": "broken",
       "quantum_attack": "shor",
       "classical_status": "ok",
-      "security_bits": { "*": 128 },
-      "oids": { "*": "1.3.101.110" }
+      "security_bits": {
+        "*": 128
+      },
+      "oids": {
+        "*": "1.3.101.110"
+      }
     },
     "AES": {
       "primitive": "block-cipher",
@@ -82,9 +123,16 @@
       "quantum_attack": "grover",
       "classical_status": "ok",
       "parameter": "key_size",
-      "security_bits": { "128": 128, "192": 192, "256": 256 },
-      "quantum_security_bits": { "128": 64, "192": 96, "256": 128 },
-      "default_parameter": 256,
+      "security_bits": {
+        "128": 128,
+        "192": 192,
+        "256": 256
+      },
+      "quantum_security_bits": {
+        "128": 64,
+        "192": 96,
+        "256": 128
+      },
       "oids": {
         "128": "2.16.840.1.101.3.4.1.2",
         "192": "2.16.840.1.101.3.4.1.22",
@@ -96,8 +144,12 @@
       "quantum_status": "weakened",
       "quantum_attack": "grover",
       "classical_status": "ok",
-      "security_bits": { "*": 256 },
-      "quantum_security_bits": { "*": 128 }
+      "security_bits": {
+        "*": 256
+      },
+      "quantum_security_bits": {
+        "*": 128
+      }
     },
     "3DES": {
       "primitive": "block-cipher",
@@ -105,9 +157,15 @@
       "quantum_attack": "grover",
       "classical_status": "disallowed",
       "classical_note": "Disallowed by NIST SP 800-131A Rev.2 after 2023; 64-bit block invites Sweet32.",
-      "security_bits": { "*": 112 },
-      "quantum_security_bits": { "*": 56 },
-      "oids": { "*": "1.2.840.113549.3.7" }
+      "security_bits": {
+        "*": 112
+      },
+      "quantum_security_bits": {
+        "*": 56
+      },
+      "oids": {
+        "*": "1.2.840.113549.3.7"
+      }
     },
     "DES": {
       "primitive": "block-cipher",
@@ -115,8 +173,12 @@
       "quantum_attack": "grover",
       "classical_status": "broken",
       "classical_note": "56-bit key, exhaustively searchable.",
-      "security_bits": { "*": 56 },
-      "oids": { "*": "1.3.14.3.2.7" }
+      "security_bits": {
+        "*": 56
+      },
+      "oids": {
+        "*": "1.3.14.3.2.7"
+      }
     },
     "RC4": {
       "primitive": "stream-cipher",
@@ -124,7 +186,9 @@
       "quantum_attack": "grover",
       "classical_status": "broken",
       "classical_note": "Prohibited in TLS by RFC 7465.",
-      "security_bits": { "*": 40 }
+      "security_bits": {
+        "*": 40
+      }
     },
     "Blowfish": {
       "primitive": "block-cipher",
@@ -132,7 +196,9 @@
       "quantum_attack": "grover",
       "classical_status": "deprecated",
       "classical_note": "64-bit block, Sweet32-vulnerable.",
-      "security_bits": { "*": 128 }
+      "security_bits": {
+        "*": 128
+      }
     },
     "MD5": {
       "primitive": "hash",
@@ -140,8 +206,12 @@
       "quantum_attack": "grover",
       "classical_status": "broken",
       "classical_note": "Practical collisions since 2004.",
-      "security_bits": { "*": 0 },
-      "oids": { "*": "1.2.840.113549.2.5" }
+      "security_bits": {
+        "*": 0
+      },
+      "oids": {
+        "*": "1.2.840.113549.2.5"
+      }
     },
     "SHA-1": {
       "primitive": "hash",
@@ -149,17 +219,30 @@
       "quantum_attack": "grover",
       "classical_status": "broken",
       "classical_note": "SHAttered collision, 2017; disallowed by NIST after 2030.",
-      "security_bits": { "*": 0 },
-      "oids": { "*": "1.3.14.3.2.26" }
+      "security_bits": {
+        "*": 0
+      },
+      "oids": {
+        "*": "1.3.14.3.2.26"
+      }
     },
     "SHA-2": {
       "primitive": "hash",
       "quantum_status": "safe",
       "classical_status": "ok",
       "parameter": "key_size",
-      "security_bits": { "224": 112, "256": 128, "384": 192, "512": 256 },
-      "quantum_security_bits": { "224": 112, "256": 128, "384": 192, "512": 256 },
-      "default_parameter": 256,
+      "security_bits": {
+        "224": 112,
+        "256": 128,
+        "384": 192,
+        "512": 256
+      },
+      "quantum_security_bits": {
+        "224": 112,
+        "256": 128,
+        "384": 192,
+        "512": 256
+      },
       "oids": {
         "256": "2.16.840.1.101.3.4.2.1",
         "384": "2.16.840.1.101.3.4.2.2",
@@ -171,26 +254,36 @@
       "quantum_status": "safe",
       "classical_status": "ok",
       "parameter": "key_size",
-      "security_bits": { "224": 112, "256": 128, "384": 192, "512": 256 },
-      "default_parameter": 256
+      "security_bits": {
+        "224": 112,
+        "256": 128,
+        "384": 192,
+        "512": 256
+      }
     },
     "HMAC": {
       "primitive": "mac",
       "quantum_status": "safe",
       "classical_status": "ok",
-      "security_bits": { "*": 128 }
+      "security_bits": {
+        "*": 128
+      }
     },
     "PBKDF2": {
       "primitive": "kdf",
       "quantum_status": "safe",
       "classical_status": "ok",
-      "security_bits": { "*": 128 }
+      "security_bits": {
+        "*": 128
+      }
     },
     "HKDF": {
       "primitive": "kdf",
       "quantum_status": "safe",
       "classical_status": "ok",
-      "security_bits": { "*": 128 }
+      "security_bits": {
+        "*": 128
+      }
     },
     "ML-KEM": {
       "primitive": "kem",
@@ -198,8 +291,16 @@
       "classical_status": "ok",
       "standard": "FIPS 203",
       "parameter": "key_size",
-      "security_bits": { "512": 128, "768": 192, "1024": 256 },
-      "nist_level": { "512": 1, "768": 3, "1024": 5 },
+      "security_bits": {
+        "512": 128,
+        "768": 192,
+        "1024": 256
+      },
+      "nist_level": {
+        "512": 1,
+        "768": 3,
+        "1024": 5
+      },
       "default_parameter": 768
     },
     "ML-DSA": {
@@ -208,8 +309,16 @@
       "classical_status": "ok",
       "standard": "FIPS 204",
       "parameter": "key_size",
-      "security_bits": { "44": 128, "65": 192, "87": 256 },
-      "nist_level": { "44": 2, "65": 3, "87": 5 },
+      "security_bits": {
+        "44": 128,
+        "65": 192,
+        "87": 256
+      },
+      "nist_level": {
+        "44": 2,
+        "65": 3,
+        "87": 5
+      },
       "default_parameter": 65
     },
     "SLH-DSA": {
@@ -218,8 +327,16 @@
       "classical_status": "ok",
       "standard": "FIPS 205",
       "parameter": "key_size",
-      "security_bits": { "128": 128, "192": 192, "256": 256 },
-      "nist_level": { "128": 1, "192": 3, "256": 5 },
+      "security_bits": {
+        "128": 128,
+        "192": 192,
+        "256": 256
+      },
+      "nist_level": {
+        "128": 1,
+        "192": 3,
+        "256": 5
+      },
       "default_parameter": 128
     },
     "TLS": {
@@ -227,7 +344,9 @@
       "quantum_status": "depends",
       "classical_status": "ok",
       "parameter": "version",
-      "security_bits": { "*": 0 }
+      "security_bits": {
+        "*": 0
+      }
     }
   },
   "aliases": {
@@ -285,7 +404,18 @@
     "pbkdf2": "PBKDF2",
     "hkdf": "HKDF",
     "blowfish": "Blowfish",
-    "bf": "Blowfish"
+    "bf": "Blowfish",
+    "sha256withrsaencryption": "RSA",
+    "sha384withrsaencryption": "RSA",
+    "sha512withrsaencryption": "RSA",
+    "sha1withrsaencryption": "RSA",
+    "md5withrsaencryption": "RSA",
+    "rsaessaoaep": "RSA",
+    "ecdsa-with-sha1": "ECDSA",
+    "dsa-with-sha256": "DSA",
+    "id-ecpublickey": "ECDSA",
+    "evp-aes": "AES",
+    "aes-gcm": "AES"
   },
   "curve_aliases": {
     "prime256v1": "P-256",

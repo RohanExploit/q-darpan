@@ -64,7 +64,9 @@ def to_markdown(
     lines.append("")
     lines.append("| Metric | Value |")
     lines.append("| --- | --- |")
-    lines.append("| Distinct cryptographic assets | %d |" % len(merged))
+    libraries = [m for m in merged if m.finding.asset_kind.value == "library"]
+    lines.append("| Distinct cryptographic assets | %d |" % (len(merged) - len(libraries)))
+    lines.append("| Crypto libraries inventoried | %d |" % len(libraries))
     lines.append("| Assets needing migration | %d |" % costs["assets_needing_migration"])
     for tier in sorted(counts, key=lambda t: TIER_ORDER.get(t, 9)):
         lines.append("| %s | %d |" % (_TIER_LABEL.get(tier, tier), counts[tier]))
@@ -101,8 +103,7 @@ def to_markdown(
                 replace_with += " (hybrid %s)" % recommendation.hybrid
         cost = "-"
         if recommendation and recommendation.size_deltas:
-            biggest = max(recommendation.size_deltas, key=lambda d: d.delta)
-            cost = biggest.describe()
+            cost = _headline_delta(recommendation.size_deltas).describe()
         lines.append(
             "| %d | %s | %s | %s | %d target(s) | %.2f | %s | %s |"
             % (
@@ -207,6 +208,20 @@ def to_markdown(
         lines.append("")
 
     return "\n".join(lines)
+
+
+#: Which size delta to headline, most operationally significant first. The
+#: bytes that cross the network every handshake matter more to a migration plan
+#: than the private key sitting in an HSM, even when the private key grew more.
+_HEADLINE_FIELDS = ("signature", "ciphertext", "public_key", "private_key")
+
+
+def _headline_delta(deltas):
+    by_field = {d.field: d for d in deltas}
+    for field in _HEADLINE_FIELDS:
+        if field in by_field:
+            return by_field[field]
+    return max(deltas, key=lambda d: d.delta)
 
 
 def _shorten(value: str, width: int = 44) -> str:

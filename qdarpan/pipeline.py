@@ -14,7 +14,7 @@ from typing import List, Optional, Sequence
 from . import cbom as cbom_module
 from . import report as report_module
 from .canonical import Registry, default_registry
-from .ir import DEFAULT_CONFIDENCE_FLOOR
+from .ir import DEFAULT_CONFIDENCE_FLOOR, AssetKind
 from .journal import RunJournal
 from .normalise import MergedFinding, merge
 from .recommend import CostModel, QueueEntry, build_queue
@@ -29,6 +29,11 @@ class Analysis:
     assessments: List[RiskAssessment]
     queue: List[QueueEntry]
     errors: List[dict]
+
+    @property
+    def libraries(self) -> List[MergedFinding]:
+        """Library inventory: present in the CBOM, absent from the queue."""
+        return [m for m in self.merged if m.finding.asset_kind is AssetKind.LIBRARY]
 
     def cbom_json(self, *, reproducible: bool = False, include_low_confidence: bool = False,
                   confidence_floor: float = DEFAULT_CONFIDENCE_FLOOR) -> str:

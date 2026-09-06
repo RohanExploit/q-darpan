@@ -33,7 +33,7 @@ from cyclonedx.model.crypto import (
     RelatedCryptoMaterialProperties,
     RelatedCryptoMaterialType,
 )
-from cyclonedx.model.tool import Tool
+from cyclonedx.model.tool import ToolRepository
 from cyclonedx.output import make_outputter
 from cyclonedx.schema import OutputFormat, SchemaVersion
 
@@ -233,8 +233,19 @@ def build_bom(
 
     components = [_component(item, registry) for item in kept]
 
+    # CycloneDX deprecated the flat `metadata.tools` list in v1.5 in favour of
+    # `metadata.tools.components`, so the tool is declared as a component.
     metadata = BomMetaData(
-        tools=[Tool(vendor="Q-DARPAN", name=TOOL_NAME, version=TOOL_VERSION)],
+        tools=ToolRepository(
+            components=[
+                Component(
+                    name=TOOL_NAME,
+                    type=ComponentType.APPLICATION,
+                    version=TOOL_VERSION,
+                    bom_ref="tool-%s-%s" % (TOOL_NAME, TOOL_VERSION),
+                )
+            ]
+        ),
         timestamp=EPOCH if reproducible else (timestamp or datetime.now(timezone.utc)),
     )
 

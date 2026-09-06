@@ -46,7 +46,7 @@ NAME_TEMPLATES = {
 #: Families where an encryption mode is worth carrying in the display name.
 MODE_BEARING_PRIMITIVES = {"block-cipher", "stream-cipher", "ae"}
 
-_KEY_SIZE_IN_NAME = re.compile(r"(?:^|[-_])(\d{2,5})(?:$|[-_])")
+_DIGIT_RUNS = re.compile(r"\d{2,5}")
 _PUNCTUATION = re.compile(r"[^a-z0-9+]")
 
 
@@ -130,22 +130,22 @@ class Registry:
     def resolve_family(self, raw: str) -> Optional[str]:
         """Map any spelling of an algorithm onto a registry family key.
 
-        Tries the whole string first, then peels trailing segments:
-        ``aes-256-gcm`` becomes ``aes-256`` and then ``aes``. Peeling from the
-        right works because every convention in the wild puts the family first
-        and the qualifiers after it.
+        Tries the whole string, then every contiguous window of its tokens,
+        longest first. Windows rather than a right-hand peel because the family
+        is not always the first token: OpenSSL writes ``EVP_aes_256_gcm``, where
+        the useful part sits in the middle.
         """
         direct = self._direct(raw)
         if direct:
             return direct
 
-        parts = [p for p in re.split(r"[-_/\s]+", raw.strip().lower()) if p]
-        while len(parts) > 1:
-            parts.pop()
-            candidate = "-".join(parts)
-            resolved = self._direct(candidate)
-            if resolved:
-                return resolved
+        tokens = [t for t in re.split(r"[-_/\s.]+", raw.strip().lower()) if t]
+        count = len(tokens)
+        for size in range(count, 0, -1):
+            for start in range(0, count - size + 1):
+                resolved = self._direct("-".join(tokens[start:start + size]))
+                if resolved:
+                    return resolved
         return None
 
     def normalise_curve(self, raw: str) -> str:
@@ -209,6 +209,13 @@ class Registry:
             else:
                 qbits = bits or 0
 
+        quantum_status = entry.get("quantum_status", "unknown")
+        if quantum_status == "weakened" and int(qbits or 0) >= 128:
+            # Grover halves the effective key length, but halving 256 still
+            # leaves 128-bit quantum security. Reporting AES-256 as
+            # quantum-vulnerable would put a no-op swap in the migration queue.
+            quantum_status = "safe"
+
         return CanonicalAlgorithm(
             name=name,
             family=family,
@@ -217,7 +224,7 @@ class Registry:
             oid=self._lookup_oid(entry, param_value),
             security_bits=int(bits or 0),
             quantum_security_bits=int(qbits or 0),
-            quantum_status=entry.get("quantum_status", "unknown"),
+            quantum_status=quantum_status,
             classical_status=entry.get("classical_status", "unknown"),
             classical_note=entry.get("classical_note"),
             nist_level=self._lookup_scale(entry.get("nist_level"), param_value),
@@ -247,12 +254,14 @@ class Registry:
             return self.normalise_curve(value) if field == "curve" else value
 
         if field == "key_size":
-            match = _KEY_SIZE_IN_NAME.search(raw_name)
-            if match:
-                candidate = int(match.group(1))
-                table = entry.get("security_bits", {})
-                if str(candidate) in table:
-                    return candidate
+            # Take the first number in the name that the family actually
+            # defines. "EVP_sha384" and "TLS_AES_256_GCM_SHA384" both carry
+            # more than one plausible number; only the registry can say which
+            # one belongs to this family.
+            table = entry.get("security_bits", {})
+            for run in _DIGIT_RUNS.findall(raw_name):
+                if run in table:
+                    return int(run)
         elif field == "curve":
             curve = self.normalise_curve(raw_name)
             if curve in entry.get("security_bits", {}):
@@ -277,7 +286,14 @@ class Registry:
     ) -> str:
         template = NAME_TEMPLATES.get(family)
         if template is not None:
-            base = template.format(p=param_value) if "{p}" in template else template
+            if "{p}" not in template:
+                base = template
+            elif param_value is None:
+                # No observed parameter: render the family alone rather than
+                # emitting a placeholder like "SHA-None".
+                base = family
+            else:
+                base = template.format(p=param_value)
         elif param_value is not None:
             base = "%s-%s" % (family, param_value)
         else:

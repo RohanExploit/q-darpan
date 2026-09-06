@@ -1,83 +1,828 @@
 {
   "$comment": "Declarative detection rules for the AST collector. Kept as data so a reviewer can audit coverage without reading Python, and so a false positive traces back to a named rule id. C and C++ coverage is the differentiator: sonar-cryptography supports Java, Python, Go and C# but not C/C++.",
   "version": "2026-09-07",
-
   "c": [
-    { "id": "openssl.evp.aes_128_cbc", "call": "EVP_aes_128_cbc", "algorithm": "AES", "parameters": { "key_size": 128, "mode": "cbc" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.aes_192_cbc", "call": "EVP_aes_192_cbc", "algorithm": "AES", "parameters": { "key_size": 192, "mode": "cbc" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.aes_256_cbc", "call": "EVP_aes_256_cbc", "algorithm": "AES", "parameters": { "key_size": 256, "mode": "cbc" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.aes_128_gcm", "call": "EVP_aes_128_gcm", "algorithm": "AES", "parameters": { "key_size": 128, "mode": "gcm" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.aes_256_gcm", "call": "EVP_aes_256_gcm", "algorithm": "AES", "parameters": { "key_size": 256, "mode": "gcm" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.aes_256_ctr", "call": "EVP_aes_256_ctr", "algorithm": "AES", "parameters": { "key_size": 256, "mode": "ctr" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.des_ede3_cbc", "call": "EVP_des_ede3_cbc", "algorithm": "3DES", "parameters": { "mode": "cbc" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.des_cbc", "call": "EVP_des_cbc", "algorithm": "DES", "parameters": { "mode": "cbc" }, "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.rc4", "call": "EVP_rc4", "algorithm": "RC4", "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.chacha20", "call": "EVP_chacha20_poly1305", "algorithm": "ChaCha20", "functions": ["encrypt", "decrypt"], "library": "openssl" },
-    { "id": "openssl.evp.md5", "call": "EVP_md5", "algorithm": "MD5", "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.evp.sha1", "call": "EVP_sha1", "algorithm": "SHA-1", "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.evp.sha256", "call": "EVP_sha256", "algorithm": "SHA-2", "parameters": { "key_size": 256 }, "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.evp.sha384", "call": "EVP_sha384", "algorithm": "SHA-2", "parameters": { "key_size": 384 }, "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.evp.sha512", "call": "EVP_sha512", "algorithm": "SHA-2", "parameters": { "key_size": 512 }, "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.rsa.generate_key_ex", "call": "RSA_generate_key_ex", "algorithm": "RSA", "arg_key_size": 1, "functions": ["keygen"], "library": "openssl" },
-    { "id": "openssl.rsa.generate_key", "call": "RSA_generate_key", "algorithm": "RSA", "arg_key_size": 0, "functions": ["keygen"], "library": "openssl" },
-    { "id": "openssl.evp.rsa_keygen_bits", "call": "EVP_PKEY_CTX_set_rsa_keygen_bits", "algorithm": "RSA", "arg_key_size": 1, "functions": ["keygen"], "library": "openssl" },
-    { "id": "openssl.ec.new_by_curve_name", "call": "EC_KEY_new_by_curve_name", "algorithm": "ECDSA", "arg_curve_nid": 0, "functions": ["keygen"], "library": "openssl" },
-    { "id": "openssl.ecdsa.sign", "call": "ECDSA_do_sign", "algorithm": "ECDSA", "functions": ["sign"], "library": "openssl" },
-    { "id": "openssl.ecdh.compute_key", "call": "ECDH_compute_key", "algorithm": "ECDH", "functions": ["keyderive"], "library": "openssl" },
-    { "id": "openssl.dh.generate_key", "call": "DH_generate_key", "algorithm": "DH", "functions": ["keygen"], "library": "openssl" },
-    { "id": "openssl.sha256.init", "call": "SHA256_Init", "algorithm": "SHA-2", "parameters": { "key_size": 256 }, "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.sha1.init", "call": "SHA1_Init", "algorithm": "SHA-1", "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.md5.init", "call": "MD5_Init", "algorithm": "MD5", "functions": ["digest"], "library": "openssl" },
-    { "id": "openssl.aes.set_encrypt_key", "call": "AES_set_encrypt_key", "algorithm": "AES", "arg_key_size": 1, "functions": ["encrypt"], "library": "openssl" },
-    { "id": "openssl.des.set_key", "call": "DES_set_key", "algorithm": "DES", "functions": ["encrypt"], "library": "openssl" },
-    { "id": "openssl.pbkdf2", "call": "PKCS5_PBKDF2_HMAC", "algorithm": "PBKDF2", "functions": ["keyderive"], "library": "openssl" },
-    { "id": "openssl.hmac", "call": "HMAC", "algorithm": "HMAC", "functions": ["tag"], "library": "openssl" },
-
-    { "id": "mbedtls.aes.setkey_enc", "call": "mbedtls_aes_setkey_enc", "algorithm": "AES", "arg_key_size": 2, "functions": ["encrypt"], "library": "mbedtls" },
-    { "id": "mbedtls.aes.setkey_dec", "call": "mbedtls_aes_setkey_dec", "algorithm": "AES", "arg_key_size": 2, "functions": ["decrypt"], "library": "mbedtls" },
-    { "id": "mbedtls.rsa.gen_key", "call": "mbedtls_rsa_gen_key", "algorithm": "RSA", "arg_key_size": 3, "functions": ["keygen"], "library": "mbedtls" },
-    { "id": "mbedtls.sha256.starts", "call": "mbedtls_sha256_starts", "algorithm": "SHA-2", "parameters": { "key_size": 256 }, "functions": ["digest"], "library": "mbedtls" },
-    { "id": "mbedtls.sha1.starts", "call": "mbedtls_sha1_starts", "algorithm": "SHA-1", "functions": ["digest"], "library": "mbedtls" },
-    { "id": "mbedtls.md5.starts", "call": "mbedtls_md5_starts", "algorithm": "MD5", "functions": ["digest"], "library": "mbedtls" },
-    { "id": "mbedtls.ecdsa.genkey", "call": "mbedtls_ecdsa_genkey", "algorithm": "ECDSA", "functions": ["keygen"], "library": "mbedtls" },
-
-    { "id": "sodium.sign.detached", "call": "crypto_sign_detached", "algorithm": "EdDSA", "parameters": { "curve": "Ed25519" }, "functions": ["sign"], "library": "libsodium" },
-    { "id": "sodium.sign.keypair", "call": "crypto_sign_keypair", "algorithm": "EdDSA", "parameters": { "curve": "Ed25519" }, "functions": ["keygen"], "library": "libsodium" },
-    { "id": "sodium.box.easy", "call": "crypto_box_easy", "algorithm": "X25519", "functions": ["encrypt"], "library": "libsodium" },
-    { "id": "sodium.scalarmult", "call": "crypto_scalarmult", "algorithm": "X25519", "functions": ["keyderive"], "library": "libsodium" },
-    { "id": "sodium.aead.aes256gcm", "call": "crypto_aead_aes256gcm_encrypt", "algorithm": "AES", "parameters": { "key_size": 256, "mode": "gcm" }, "functions": ["encrypt"], "library": "libsodium" }
+    {
+      "id": "openssl.evp.aes_128_cbc",
+      "call": "EVP_aes_128_cbc",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 128,
+        "mode": "cbc"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.aes_192_cbc",
+      "call": "EVP_aes_192_cbc",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 192,
+        "mode": "cbc"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.aes_256_cbc",
+      "call": "EVP_aes_256_cbc",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 256,
+        "mode": "cbc"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.aes_128_gcm",
+      "call": "EVP_aes_128_gcm",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 128,
+        "mode": "gcm"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.aes_256_gcm",
+      "call": "EVP_aes_256_gcm",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 256,
+        "mode": "gcm"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.aes_256_ctr",
+      "call": "EVP_aes_256_ctr",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 256,
+        "mode": "ctr"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.des_ede3_cbc",
+      "call": "EVP_des_ede3_cbc",
+      "algorithm": "3DES",
+      "parameters": {
+        "mode": "cbc"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.des_cbc",
+      "call": "EVP_des_cbc",
+      "algorithm": "DES",
+      "parameters": {
+        "mode": "cbc"
+      },
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.rc4",
+      "call": "EVP_rc4",
+      "algorithm": "RC4",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.chacha20",
+      "call": "EVP_chacha20_poly1305",
+      "algorithm": "ChaCha20",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.md5",
+      "call": "EVP_md5",
+      "algorithm": "MD5",
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.sha1",
+      "call": "EVP_sha1",
+      "algorithm": "SHA-1",
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.sha256",
+      "call": "EVP_sha256",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 256
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.sha384",
+      "call": "EVP_sha384",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 384
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.sha512",
+      "call": "EVP_sha512",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 512
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.rsa.generate_key_ex",
+      "call": "RSA_generate_key_ex",
+      "algorithm": "RSA",
+      "arg_key_size": 1,
+      "functions": [
+        "keygen"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.rsa.generate_key",
+      "call": "RSA_generate_key",
+      "algorithm": "RSA",
+      "arg_key_size": 0,
+      "functions": [
+        "keygen"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.evp.rsa_keygen_bits",
+      "call": "EVP_PKEY_CTX_set_rsa_keygen_bits",
+      "algorithm": "RSA",
+      "arg_key_size": 1,
+      "functions": [
+        "keygen"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.ec.new_by_curve_name",
+      "call": "EC_KEY_new_by_curve_name",
+      "algorithm": "ECDSA",
+      "arg_curve_nid": 0,
+      "functions": [
+        "keygen"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.ecdsa.sign",
+      "call": "ECDSA_do_sign",
+      "algorithm": "ECDSA",
+      "functions": [
+        "sign"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.ecdh.compute_key",
+      "call": "ECDH_compute_key",
+      "algorithm": "ECDH",
+      "functions": [
+        "keyderive"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.dh.generate_key",
+      "call": "DH_generate_key",
+      "algorithm": "DH",
+      "functions": [
+        "keygen"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.sha256.init",
+      "call": "SHA256_Init",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 256
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.sha1.init",
+      "call": "SHA1_Init",
+      "algorithm": "SHA-1",
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.md5.init",
+      "call": "MD5_Init",
+      "algorithm": "MD5",
+      "functions": [
+        "digest"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.aes.set_encrypt_key",
+      "call": "AES_set_encrypt_key",
+      "algorithm": "AES",
+      "arg_key_size": 1,
+      "functions": [
+        "encrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.des.set_key",
+      "call": "DES_set_key",
+      "algorithm": "DES",
+      "functions": [
+        "encrypt"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.pbkdf2",
+      "call": "PKCS5_PBKDF2_HMAC",
+      "algorithm": "PBKDF2",
+      "functions": [
+        "keyderive"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "openssl.hmac",
+      "call": "HMAC",
+      "algorithm": "HMAC",
+      "functions": [
+        "tag"
+      ],
+      "library": "openssl"
+    },
+    {
+      "id": "mbedtls.aes.setkey_enc",
+      "call": "mbedtls_aes_setkey_enc",
+      "algorithm": "AES",
+      "arg_key_size": 2,
+      "functions": [
+        "encrypt"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.aes.setkey_dec",
+      "call": "mbedtls_aes_setkey_dec",
+      "algorithm": "AES",
+      "arg_key_size": 2,
+      "functions": [
+        "decrypt"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.rsa.gen_key",
+      "call": "mbedtls_rsa_gen_key",
+      "algorithm": "RSA",
+      "arg_key_size": 3,
+      "functions": [
+        "keygen"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.sha256.starts",
+      "call": "mbedtls_sha256_starts",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 256
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.sha1.starts",
+      "call": "mbedtls_sha1_starts",
+      "algorithm": "SHA-1",
+      "functions": [
+        "digest"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.md5.starts",
+      "call": "mbedtls_md5_starts",
+      "algorithm": "MD5",
+      "functions": [
+        "digest"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "mbedtls.ecdsa.genkey",
+      "call": "mbedtls_ecdsa_genkey",
+      "algorithm": "ECDSA",
+      "functions": [
+        "keygen"
+      ],
+      "library": "mbedtls"
+    },
+    {
+      "id": "sodium.sign.detached",
+      "call": "crypto_sign_detached",
+      "algorithm": "EdDSA",
+      "parameters": {
+        "curve": "Ed25519"
+      },
+      "functions": [
+        "sign"
+      ],
+      "library": "libsodium"
+    },
+    {
+      "id": "sodium.sign.keypair",
+      "call": "crypto_sign_keypair",
+      "algorithm": "EdDSA",
+      "parameters": {
+        "curve": "Ed25519"
+      },
+      "functions": [
+        "keygen"
+      ],
+      "library": "libsodium"
+    },
+    {
+      "id": "sodium.box.easy",
+      "call": "crypto_box_easy",
+      "algorithm": "X25519",
+      "functions": [
+        "encrypt"
+      ],
+      "library": "libsodium"
+    },
+    {
+      "id": "sodium.scalarmult",
+      "call": "crypto_scalarmult",
+      "algorithm": "X25519",
+      "functions": [
+        "keyderive"
+      ],
+      "library": "libsodium"
+    },
+    {
+      "id": "sodium.aead.aes256gcm",
+      "call": "crypto_aead_aes256gcm_encrypt",
+      "algorithm": "AES",
+      "parameters": {
+        "key_size": 256,
+        "mode": "gcm"
+      },
+      "functions": [
+        "encrypt"
+      ],
+      "library": "libsodium"
+    }
   ],
-
   "java": [
-    { "id": "jca.cipher.getinstance", "call": "getInstance", "receiver": "Cipher", "arg_jca_spec": 0, "functions": ["encrypt", "decrypt"], "library": "jca" },
-    { "id": "jca.messagedigest.getinstance", "call": "getInstance", "receiver": "MessageDigest", "arg_algorithm": 0, "functions": ["digest"], "library": "jca" },
-    { "id": "jca.signature.getinstance", "call": "getInstance", "receiver": "Signature", "arg_algorithm": 0, "functions": ["sign", "verify"], "library": "jca" },
-    { "id": "jca.keypairgenerator.getinstance", "call": "getInstance", "receiver": "KeyPairGenerator", "arg_algorithm": 0, "functions": ["keygen"], "library": "jca" },
-    { "id": "jca.keygenerator.getinstance", "call": "getInstance", "receiver": "KeyGenerator", "arg_algorithm": 0, "functions": ["keygen"], "library": "jca" },
-    { "id": "jca.mac.getinstance", "call": "getInstance", "receiver": "Mac", "arg_algorithm": 0, "functions": ["tag"], "library": "jca" },
-    { "id": "jca.secretkeyfactory.getinstance", "call": "getInstance", "receiver": "SecretKeyFactory", "arg_algorithm": 0, "functions": ["keyderive"], "library": "jca" },
-    { "id": "jca.keyagreement.getinstance", "call": "getInstance", "receiver": "KeyAgreement", "arg_algorithm": 0, "functions": ["keyderive"], "library": "jca" },
-    { "id": "jca.keystore.getinstance", "call": "getInstance", "receiver": "KeyStore", "arg_algorithm": 0, "functions": ["other"], "library": "jca", "skip_unresolved": true }
+    {
+      "id": "jca.cipher.getinstance",
+      "call": "getInstance",
+      "receiver": "Cipher",
+      "arg_jca_spec": 0,
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.messagedigest.getinstance",
+      "call": "getInstance",
+      "receiver": "MessageDigest",
+      "arg_algorithm": 0,
+      "functions": [
+        "digest"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.signature.getinstance",
+      "call": "getInstance",
+      "receiver": "Signature",
+      "arg_algorithm": 0,
+      "functions": [
+        "sign",
+        "verify"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.keypairgenerator.getinstance",
+      "call": "getInstance",
+      "receiver": "KeyPairGenerator",
+      "arg_algorithm": 0,
+      "functions": [
+        "keygen"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.keygenerator.getinstance",
+      "call": "getInstance",
+      "receiver": "KeyGenerator",
+      "arg_algorithm": 0,
+      "functions": [
+        "keygen"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.mac.getinstance",
+      "call": "getInstance",
+      "receiver": "Mac",
+      "arg_algorithm": 0,
+      "functions": [
+        "tag"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.secretkeyfactory.getinstance",
+      "call": "getInstance",
+      "receiver": "SecretKeyFactory",
+      "arg_algorithm": 0,
+      "functions": [
+        "keyderive"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.keyagreement.getinstance",
+      "call": "getInstance",
+      "receiver": "KeyAgreement",
+      "arg_algorithm": 0,
+      "functions": [
+        "keyderive"
+      ],
+      "library": "jca"
+    },
+    {
+      "id": "jca.keystore.getinstance",
+      "call": "getInstance",
+      "receiver": "KeyStore",
+      "arg_algorithm": 0,
+      "functions": [
+        "other"
+      ],
+      "library": "jca",
+      "skip_unresolved": true
+    }
   ],
-
   "go": [
-    { "id": "go.aes.newcipher", "call": "NewCipher", "receiver": "aes", "algorithm": "AES", "functions": ["encrypt", "decrypt"], "library": "crypto/aes" },
-    { "id": "go.des.newcipher", "call": "NewCipher", "receiver": "des", "algorithm": "DES", "functions": ["encrypt", "decrypt"], "library": "crypto/des" },
-    { "id": "go.des.newtripledescipher", "call": "NewTripleDESCipher", "receiver": "des", "algorithm": "3DES", "functions": ["encrypt", "decrypt"], "library": "crypto/des" },
-    { "id": "go.rc4.newcipher", "call": "NewCipher", "receiver": "rc4", "algorithm": "RC4", "functions": ["encrypt", "decrypt"], "library": "crypto/rc4" },
-    { "id": "go.rsa.generatekey", "call": "GenerateKey", "receiver": "rsa", "algorithm": "RSA", "arg_key_size": 1, "functions": ["keygen"], "library": "crypto/rsa" },
-    { "id": "go.ecdsa.generatekey", "call": "GenerateKey", "receiver": "ecdsa", "algorithm": "ECDSA", "functions": ["keygen"], "library": "crypto/ecdsa" },
-    { "id": "go.ed25519.generatekey", "call": "GenerateKey", "receiver": "ed25519", "algorithm": "EdDSA", "parameters": { "curve": "Ed25519" }, "functions": ["keygen"], "library": "crypto/ed25519" },
-    { "id": "go.elliptic.p256", "call": "P256", "receiver": "elliptic", "algorithm": "ECDSA", "parameters": { "curve": "P-256" }, "functions": ["keygen"], "library": "crypto/elliptic" },
-    { "id": "go.elliptic.p384", "call": "P384", "receiver": "elliptic", "algorithm": "ECDSA", "parameters": { "curve": "P-384" }, "functions": ["keygen"], "library": "crypto/elliptic" },
-    { "id": "go.elliptic.p521", "call": "P521", "receiver": "elliptic", "algorithm": "ECDSA", "parameters": { "curve": "P-521" }, "functions": ["keygen"], "library": "crypto/elliptic" },
-    { "id": "go.md5.new", "call": "New", "receiver": "md5", "algorithm": "MD5", "functions": ["digest"], "library": "crypto/md5" },
-    { "id": "go.sha1.new", "call": "New", "receiver": "sha1", "algorithm": "SHA-1", "functions": ["digest"], "library": "crypto/sha1" },
-    { "id": "go.sha256.new", "call": "New", "receiver": "sha256", "algorithm": "SHA-2", "parameters": { "key_size": 256 }, "functions": ["digest"], "library": "crypto/sha256" },
-    { "id": "go.sha512.new", "call": "New", "receiver": "sha512", "algorithm": "SHA-2", "parameters": { "key_size": 512 }, "functions": ["digest"], "library": "crypto/sha512" },
-    { "id": "go.hmac.new", "call": "New", "receiver": "hmac", "algorithm": "HMAC", "functions": ["tag"], "library": "crypto/hmac" }
+    {
+      "id": "go.aes.newcipher",
+      "call": "NewCipher",
+      "receiver": "aes",
+      "algorithm": "AES",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "crypto/aes"
+    },
+    {
+      "id": "go.des.newcipher",
+      "call": "NewCipher",
+      "receiver": "des",
+      "algorithm": "DES",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "crypto/des"
+    },
+    {
+      "id": "go.des.newtripledescipher",
+      "call": "NewTripleDESCipher",
+      "receiver": "des",
+      "algorithm": "3DES",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "crypto/des"
+    },
+    {
+      "id": "go.rc4.newcipher",
+      "call": "NewCipher",
+      "receiver": "rc4",
+      "algorithm": "RC4",
+      "functions": [
+        "encrypt",
+        "decrypt"
+      ],
+      "library": "crypto/rc4"
+    },
+    {
+      "id": "go.rsa.generatekey",
+      "call": "GenerateKey",
+      "receiver": "rsa",
+      "algorithm": "RSA",
+      "arg_key_size": 1,
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/rsa"
+    },
+    {
+      "id": "go.ecdsa.generatekey",
+      "call": "GenerateKey",
+      "receiver": "ecdsa",
+      "algorithm": "ECDSA",
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/ecdsa"
+    },
+    {
+      "id": "go.ed25519.generatekey",
+      "call": "GenerateKey",
+      "receiver": "ed25519",
+      "algorithm": "EdDSA",
+      "parameters": {
+        "curve": "Ed25519"
+      },
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/ed25519"
+    },
+    {
+      "id": "go.elliptic.p256",
+      "call": "P256",
+      "receiver": "elliptic",
+      "algorithm": "ECDSA",
+      "parameters": {
+        "curve": "P-256"
+      },
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/elliptic"
+    },
+    {
+      "id": "go.elliptic.p384",
+      "call": "P384",
+      "receiver": "elliptic",
+      "algorithm": "ECDSA",
+      "parameters": {
+        "curve": "P-384"
+      },
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/elliptic"
+    },
+    {
+      "id": "go.elliptic.p521",
+      "call": "P521",
+      "receiver": "elliptic",
+      "algorithm": "ECDSA",
+      "parameters": {
+        "curve": "P-521"
+      },
+      "functions": [
+        "keygen"
+      ],
+      "library": "crypto/elliptic"
+    },
+    {
+      "id": "go.md5.new",
+      "call": "New",
+      "receiver": "md5",
+      "algorithm": "MD5",
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/md5"
+    },
+    {
+      "id": "go.sha1.new",
+      "call": "New",
+      "receiver": "sha1",
+      "algorithm": "SHA-1",
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha1"
+    },
+    {
+      "id": "go.sha256.new",
+      "call": "New",
+      "receiver": "sha256",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 256
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha256"
+    },
+    {
+      "id": "go.sha512.new",
+      "call": "New",
+      "receiver": "sha512",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 512
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha512"
+    },
+    {
+      "id": "go.hmac.new",
+      "call": "New",
+      "receiver": "hmac",
+      "algorithm": "HMAC",
+      "functions": [
+        "tag"
+      ],
+      "library": "crypto/hmac"
+    },
+    {
+      "id": "go.sha256.sum256",
+      "call": "Sum256",
+      "receiver": "sha256",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 256
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha256"
+    },
+    {
+      "id": "go.sha256.sum224",
+      "call": "Sum224",
+      "receiver": "sha256",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 224
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha256"
+    },
+    {
+      "id": "go.sha512.sum512",
+      "call": "Sum512",
+      "receiver": "sha512",
+      "algorithm": "SHA-2",
+      "parameters": {
+        "key_size": 512
+      },
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha512"
+    },
+    {
+      "id": "go.sha1.sum",
+      "call": "Sum",
+      "receiver": "sha1",
+      "algorithm": "SHA-1",
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/sha1"
+    },
+    {
+      "id": "go.md5.sum",
+      "call": "Sum",
+      "receiver": "md5",
+      "algorithm": "MD5",
+      "functions": [
+        "digest"
+      ],
+      "library": "crypto/md5"
+    },
+    {
+      "id": "go.ed25519.sign",
+      "call": "Sign",
+      "receiver": "ed25519",
+      "algorithm": "EdDSA",
+      "parameters": {
+        "curve": "Ed25519"
+      },
+      "functions": [
+        "sign"
+      ],
+      "library": "crypto/ed25519"
+    },
+    {
+      "id": "go.rsa.signpkcs1v15",
+      "call": "SignPKCS1v15",
+      "receiver": "rsa",
+      "algorithm": "RSA",
+      "parameters": {
+        "padding": "pkcs1v15"
+      },
+      "functions": [
+        "sign"
+      ],
+      "library": "crypto/rsa"
+    },
+    {
+      "id": "go.rsa.encryptoaep",
+      "call": "EncryptOAEP",
+      "receiver": "rsa",
+      "algorithm": "RSA",
+      "parameters": {
+        "padding": "oaep"
+      },
+      "functions": [
+        "encrypt"
+      ],
+      "library": "crypto/rsa"
+    },
+    {
+      "id": "go.ecdsa.sign",
+      "call": "SignASN1",
+      "receiver": "ecdsa",
+      "algorithm": "ECDSA",
+      "functions": [
+        "sign"
+      ],
+      "library": "crypto/ecdsa"
+    }
   ],
-
   "openssl_curve_nids": {
     "NID_X9_62_prime256v1": "P-256",
     "NID_secp256r1": "P-256",
@@ -88,7 +833,6 @@
     "NID_X25519": "X25519",
     "NID_X448": "X448"
   },
-
   "include_libraries": {
     "$comment": "Headers and imports that prove a crypto library is linked even when no specific algorithm is pinned.",
     "openssl/evp.h": "openssl",
@@ -104,6 +848,12 @@
     "javax.crypto": "jca",
     "java.security": "jca",
     "org.bouncycastle": "bouncycastle",
-    "crypto/tls": "crypto/tls"
+    "crypto/tls": "crypto/tls",
+    "crypto/sha256": "crypto/sha256",
+    "crypto/rsa": "crypto/rsa",
+    "crypto/aes": "crypto/aes",
+    "crypto/ecdsa": "crypto/ecdsa",
+    "crypto/md5": "crypto/md5",
+    "crypto/ed25519": "crypto/ed25519"
   }
 }
