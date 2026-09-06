@@ -1,0 +1,24 @@
+#!/bin/sh
+# Push every commit to origin immediately.
+#
+# This project lost its volume once already: on 2026-09-07 the R: drive
+# dismounted mid-session and vanished from Windows entirely. GitHub is the only
+# copy that does not live on a disk in this machine, so a commit that has not
+# been pushed is not yet a backup.
+#
+# Deliberately non-fatal. Being offline, or having the remote reject a push,
+# must never make a successful commit look like a failure -- the commit is
+# already safely in the local object store either way.
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
+
+# Detached HEAD has no branch to push. Not an error, just nothing to do.
+[ "$branch" = "HEAD" ] && exit 0
+
+if git push --quiet origin "$branch" 2>/dev/null; then
+    echo "post-commit: pushed $branch to origin"
+else
+    echo "post-commit: push failed (offline, or remote rejected) -- commit is LOCAL ONLY"
+fi
+
+exit 0

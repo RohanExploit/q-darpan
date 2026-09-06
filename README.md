@@ -42,6 +42,7 @@ CII estates, and no open-source CBOM tool reads it today.
 ```bash
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -e ".[api,dev]"
+sh tools/install-hooks.sh   # optional: push every commit to origin automatically
 ```
 
 Requires Python 3.10+. Roughly 15 MB of new dependencies: `tree-sitter` plus four grammar

@@ -19,25 +19,38 @@ changing architecture.
 
 | Thing | Path |
 |---|---|
-| Repo | `E:\q-darpan` |
-| venv | `E:\q-darpan\.venv` (Python 3.10.0) |
-| GitHub | `github.com/RohanExploit/q-darpan` — **private** |
-| Scan output | `E:\q-darpan\runs\<run_id>\` (gitignored) |
+| Repo (**primary**) | `R:\New folder\q darpan` |
+| venv | `.venv` in the repo root (Python 3.10.0) |
+| GitHub | `github.com/RohanExploit/q-darpan` — **private**, and the only copy not on a disk in this machine |
+| Scan output | `runs\<run_id>\` under the repo (gitignored) |
+| Fallback mirror | `E:\q-darpan` — full copy at commit `d96c393`. Not authoritative, do not edit. |
+| Pre-outage snapshot | `.stale-20260907\` — kept so nothing was deleted. Safe to remove. |
 
-**The project used to live on `R:\New folder\q darpan`. That volume dismounted mid-session
-on 2026-09-07 and is not a physical partition — no `subst`, no VHD, no attached disk.
-Everything was rebuilt on E:. Do not look for R:, and do not write anything to it.**
+### The drive history, and why it changes how you work
 
-The original deck `SIH2026_SIH26164_Q-DARPAN.pptx` was lost with R:. Its full text is
-reproduced in the design spec's §2 and in the deck-correction notes below; the slide
-design and images are not recoverable from here.
+On 2026-09-07 the R: volume **dismounted mid-session and vanished from Windows entirely** —
+no partition, no `subst` mapping, no mounted VHD; only the NVMe (C:, E:) and an SD card (D:)
+remained. The project was rebuilt on `E:\q-darpan` and pushed to GitHub. R: later came back
+and the user chose it as primary again.
 
-`PIP_CACHE_DIR` is still set to the dead `R:\caches\pip` in the user's environment. Export
-`PIP_CACHE_DIR=E:/caches/pip` before running pip, or it warns.
+**R: is primary, but it has failed once with no explanation. Every commit gets pushed.**
+
+A `post-commit` hook does this automatically. It lives at `tools/hooks/post-commit` and is
+installed with `sh tools/install-hooks.sh` (hooks are not version-controlled, so a fresh
+clone needs this once). The hook is deliberately non-fatal — being offline must not make a
+good commit look failed — so **if you see `post-commit: push failed`, the work exists on one
+disk only. Say so out loud rather than letting it pass.**
+
+The deck `SIH2026_SIH26164_Q-DARPAN.pptx` is tracked at `deck/` for the same reason: it was
+briefly presumed lost with the volume, and a file that only exists on one disk is not safe.
+
+`PIP_CACHE_DIR` points at `R:\caches\pip`, which works again now that R: is back.
 
 ## Running it
 
 ```bash
+sh tools/install-hooks.sh          # once per clone: enables auto-push on commit
+
 .venv/Scripts/python.exe -m qdarpan.cli scan tests/fixtures/sample_repo --out runs
 .venv/Scripts/python.exe -m qdarpan.cli scan example.com:443 --surface tls
 .venv/Scripts/python.exe -m qdarpan.cli report runs/<run_id>
@@ -72,6 +85,13 @@ Break these and the design stops working:
    documented in the spec's constraints table. The container collector reads tarballs and
    OCI layouts directly.
 
+Two more that the first end-to-end run taught us, and that are easy to regress:
+
+9. **Libraries are inventory, not algorithm instances.** A `crypto/md5` import or a linked
+   `libcrypto` stays out of the migration queue; the real call sites are already counted.
+10. **A Grover-weakened family at or above 128-bit quantum security is safe.** AES-256 must
+    never appear in the queue being told to migrate to AES-256.
+
 ## Deck corrections — verified 2026-09-07, not yet applied to the deck
 
 The submitted deck contains three claims that are wrong or stale. Phase 4 fixes them.
@@ -84,10 +104,12 @@ The submitted deck contains three claims that are wrong or stale. Phase 4 fixes 
 
 Verified and correct as written: RFC 10024 (Std Track, Aug 2026 — X25519MLKEM768,
 SecP256r1MLKEM768, SecP384r1MLKEM1024; framework is RFC 9954); FIPS 203/204/205 (Aug 2024);
-the ML-DSA-65 vs ECDSA-P256 figures (+1888 B public key, 51.7× signature).
+the ML-DSA-65 vs ECDSA-P256 figures (+1888 B public key, 51.7× signature — the tool now
+reproduces the 51.7× from `migration_costs.json` rather than asserting it).
 
 Also unfixed in the deck: `<TEAM ID>`, `<TEAM NAME>` and `<TEAM>` placeholders on every
-slide, and the repo link that 404s until the GitHub repo goes public.
+slide, and the repo link that 404s until the GitHub repo goes public
+(`gh repo edit RohanExploit/q-darpan --visibility public`).
 
 ## Style
 

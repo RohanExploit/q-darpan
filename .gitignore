@@ -8,3 +8,4 @@ vendor/wheels/
 *.egg-info/
 evidence-pack*.zip
 demo-runs/
+.stale-20260907/
