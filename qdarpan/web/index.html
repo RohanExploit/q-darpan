@@ -246,9 +246,11 @@ function costOf(entry) {
 }
 
 function describeCost(d) {
+  // Field names here must track SizeDelta.to_dict() on the Python side:
+  // before_bytes / after_bytes / delta_bytes, not before / after / delta.
   if (!d) return '<span class="muted">&ndash;</span>';
   var ratio = d.ratio ? " (" + d.ratio + "×)" : "";
-  return '<span class="mono">' + d.before + " &rarr; " + d.after + " B" + ratio + "</span>";
+  return '<span class="mono">' + d.before_bytes + " &rarr; " + d.after_bytes + " B" + ratio + "</span>";
 }
 
 function rowsFor() {
@@ -364,8 +366,9 @@ function toggleDetail(tr, entry) {
     if (rec.size_deltas && rec.size_deltas.length) {
       html += "<ul>";
       rec.size_deltas.forEach(function (d) {
-        html += '<li class="mono">' + esc(d.field) + ": " + d.before + " &rarr; " + d.after +
-          " B (" + (d.delta >= 0 ? "+" : "") + d.delta + (d.ratio ? ", " + d.ratio + "×" : "") + ")</li>";
+        html += '<li class="mono">' + esc(d.field) + ": " + d.before_bytes + " &rarr; " +
+          d.after_bytes + " B (" + (d.delta_bytes >= 0 ? "+" : "") + d.delta_bytes +
+          (d.ratio ? ", " + d.ratio + "×" : "") + ")</li>";
       });
       html += "</ul>";
     }

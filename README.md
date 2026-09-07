@@ -127,7 +127,7 @@ byte-identical CBOMs, which is what makes quarter-over-quarter diffing in git me
 
 ## Status
 
-Alpha. 123 tests pass, covering canonicalisation across ecosystem spellings, cross-surface
+Alpha. 124 tests pass, covering canonicalisation across ecosystem spellings, cross-surface
 merging, all four collectors against real inputs (a hand-built ELF, a synthetic `docker save`
 tarball, a loopback TLS server), CBOM emission and determinism, the risk model's scenario
 boundaries, the CLI end to end, and the HTTP service behind the dashboard.
@@ -141,6 +141,8 @@ a labelled corpus, and the vendored offline wheel bundle. See
 ```bash
 qdarpan serve            # http://127.0.0.1:8787
 ```
+
+![Q-DARPAN dashboard](docs/images/dashboard.png)
 
 One self-contained HTML file: no npm, no bundler, no CDN, no web fonts. It renders the ranked
 queue, per-finding evidence, the three Mosca scenarios and the recommendation with its byte

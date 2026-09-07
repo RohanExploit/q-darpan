@@ -67,6 +67,33 @@ def test_dashboard_is_self_contained():
         assert offender not in html, "dashboard reaches outside for %r" % offender
 
 
+def test_dashboard_reads_only_fields_the_api_sends(client):
+    """The page renders size deltas; those field names must exist in the JSON.
+
+    Reading d.before instead of d.before_bytes rendered "undefined -> undefined B"
+    in the wire-cost column while every API test still passed, because nothing
+    tied the two field vocabularies together. This does.
+    """
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    body = client.get("/api/runs/reproducible").json()
+    deltas = [
+        d
+        for entry in body["queue"]
+        if entry.get("recommendation")
+        for d in entry["recommendation"]["size_deltas"]
+    ]
+    assert deltas, "fixture must produce at least one size delta to check against"
+    served = set(deltas[0])
+
+    for referenced in ("before_bytes", "after_bytes", "delta_bytes", "ratio", "field"):
+        assert referenced in served, referenced
+        assert referenced in html, "dashboard never reads %s" % referenced
+
+    # The pre-serialisation names must not appear as delta property reads.
+    for stale in ("d.before ", "d.after ", "d.delta "):
+        assert stale not in html, "dashboard reads %r, which the API does not send" % stale
+
+
 def test_runs_are_listed(client):
     runs = client.get("/api/runs").json()["runs"]
     assert len(runs) == 1

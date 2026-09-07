@@ -9,3 +9,4 @@ vendor/wheels/
 evidence-pack*.zip
 demo-runs/
 .stale-20260907/
+.gstack/
