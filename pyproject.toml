@@ -20,7 +20,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "tree-sitter>=0.23",
+    # 0.26.0 corrupts the interpreter heap on Windows/CPython 3.10: after a
+    # handful of collector runs in one process, unrelated os.stat calls start
+    # raising "TypeError: an integer is required" or dying with an access
+    # violation. Bisected to the tree-sitter version alone -- 0.25.2 is clean
+    # under the identical workload. Do not widen this bound without re-running
+    # tests/test_api.py, which is what surfaced it.
+    "tree-sitter>=0.23,<0.26",
     "tree-sitter-c",
     "tree-sitter-cpp",
     "tree-sitter-java",

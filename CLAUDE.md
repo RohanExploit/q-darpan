@@ -21,9 +21,9 @@ changing architecture.
 |---|---|
 | Repo (**primary**) | `R:\New folder\q darpan` |
 | venv | `.venv` in the repo root (Python 3.10.0) |
-| GitHub | `github.com/RohanExploit/q-darpan` — **private**, and the only copy not on a disk in this machine |
+| GitHub | `github.com/RohanExploit/q-darpan` — **public**, and the only copy not on a disk in this machine |
 | Scan output | `runs\<run_id>\` under the repo (gitignored) |
-| Fallback mirror | `E:\q-darpan` — full copy at commit `d96c393`. Not authoritative, do not edit. |
+| Fallback mirror | `E:\q-darpan` — full copy, refreshed by hand. Not authoritative, do not edit. |
 | Pre-outage snapshot | `.stale-20260907\` — kept so nothing was deleted. Safe to remove. |
 
 ### The drive history, and why it changes how you work
@@ -92,9 +92,10 @@ Two more that the first end-to-end run taught us, and that are easy to regress:
 10. **A Grover-weakened family at or above 128-bit quantum security is safe.** AES-256 must
     never appear in the queue being told to migrate to AES-256.
 
-## Deck corrections — verified 2026-09-07, not yet applied to the deck
+## Deck corrections — verified 2026-09-07, applied
 
-The submitted deck contains three claims that are wrong or stale. Phase 4 fixes them.
+The deck contained three claims that were wrong or stale. All three are fixed in
+`deck/SIH2026_SIH26164_Q-DARPAN.pptx`; they are recorded here so nobody reintroduces them.
 
 - **ECMA-424.** The deck states the mapping twice and contradicts itself. Truth: ECMA-424
   1st edition = CycloneDX v1.6 (Jun 2024); **2nd edition = CycloneDX v1.7 (Dec 2025)**.
@@ -107,9 +108,24 @@ SecP256r1MLKEM768, SecP384r1MLKEM1024; framework is RFC 9954); FIPS 203/204/205 
 the ML-DSA-65 vs ECDSA-P256 figures (+1888 B public key, 51.7× signature — the tool now
 reproduces the 51.7× from `migration_costs.json` rather than asserting it).
 
-Also unfixed in the deck: `<TEAM ID>`, `<TEAM NAME>` and `<TEAM>` placeholders on every
-slide, and the repo link that 404s until the GitHub repo goes public
-(`gh repo edit RohanExploit/q-darpan --visibility public`).
+The deck was also rewritten against the official NTRO problem statement so every clause it
+lists is represented; an audit script in the commit history checks 21 of 21.
+
+Still open: the `<TEAM ID>`, `<TEAM NAME>` and `<TEAM>` placeholders. Those are registered on
+the SIH portal and only the team can supply them — **do not invent values for them.**
+
+## Traps
+
+**`tree-sitter` is pinned `<0.26` and must stay there.** 0.26.0 corrupts the CPython heap on
+this platform: after roughly six collector runs in one process, unrelated `os.stat` calls
+start raising `TypeError: an integer is required` or dying with a Windows access violation,
+and the visible symptom lands somewhere innocent -- a segfault in pytest's cache writer, an
+`IndexError` deep inside `sortedcontainers`. It was bisected to the tree-sitter version alone;
+0.25.2 is clean under an identical workload. If you widen that bound, run `tests/test_api.py`
+in a loop, because that is the suite that surfaced it.
+
+Symptoms that look like a flaky disk or a bad drive may be this instead. Check the pin before
+blaming hardware.
 
 ## Style
 

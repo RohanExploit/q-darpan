@@ -127,14 +127,25 @@ byte-identical CBOMs, which is what makes quarter-over-quarter diffing in git me
 
 ## Status
 
-Alpha. 109 tests pass, covering canonicalisation across ecosystem spellings, cross-surface
+Alpha. 123 tests pass, covering canonicalisation across ecosystem spellings, cross-surface
 merging, all four collectors against real inputs (a hand-built ELF, a synthetic `docker save`
 tarball, a loopback TLS server), CBOM emission and determinism, the risk model's scenario
-boundaries, and the CLI end to end.
+boundaries, the CLI end to end, and the HTTP service behind the dashboard.
 
-Not yet built: per-collector precision/recall over a labelled corpus, the FastAPI service and
-dashboard, and the vendored offline wheel bundle. Those are Phase 3 in
+Not yet built: the HSM (PKCS#11) and cloud KMS collectors, per-collector precision/recall over
+a labelled corpus, and the vendored offline wheel bundle. See
 `docs/superpowers/specs/2026-09-07-q-darpan-design.md`.
+
+### Dashboard
+
+```bash
+qdarpan serve            # http://127.0.0.1:8787
+```
+
+One self-contained HTML file: no npm, no bundler, no CDN, no web fonts. It renders the ranked
+queue, per-finding evidence, the three Mosca scenarios and the recommendation with its byte
+costs, and it can launch a scan. A test asserts the page contains no outbound URL at all,
+because an enclave that resolves nothing still has to render the whole UI.
 
 ## References
 

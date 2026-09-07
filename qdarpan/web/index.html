@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-DARPAN</title>
+<!--
+  One self-contained file. No npm, no bundler, no CDN, no web fonts.
+
+  That is a deployment decision, not a shortcut: this dashboard has to open
+  inside an air-gapped enclave where nothing resolves and no package manager
+  runs. Every byte it needs is either in this file or comes from the local API.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #14171f;
+    --muted: #5d6470;
+    --line: #dfe3e8;
+    --accent: #1f4fd8;
+    --critical: #c02a25;
+    --high: #d3671a;
+    --medium: #b28900;
+    --low: #4a7c2f;
+    --safe: #2b7a6f;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1218; --panel: #161b23; --ink: #e6e9ef; --muted: #9aa3b0;
+      --line: #262d38; --accent: #6f9bff;
+      --critical: #ff6b62; --high: #ffa04d; --medium: #e8c25a;
+      --low: #86c46a; --safe: #5ecfbf;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  header h1 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  header .spacer { flex: 1; }
+  main { padding: 22px 24px 60px; max-width: 1500px; margin: 0 auto; }
+  section { margin-bottom: 26px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em;
+       color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+
+  .tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .tile .n { font-size: 27px; font-weight: 650; letter-spacing: -0.02em; }
+  .tile .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tile.critical .n { color: var(--critical); }
+  .tile.high .n { color: var(--high); }
+  .tile.medium .n { color: var(--medium); }
+  .tile.low .n { color: var(--low); }
+  .tile.pq-safe .n { color: var(--safe); }
+
+  .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden;
+         border: 1px solid var(--line); background: var(--panel); }
+  .bar span { display: block; }
+  .bar .critical { background: var(--critical); }
+  .bar .high { background: var(--high); }
+  .bar .medium { background: var(--medium); }
+  .bar .low { background: var(--low); }
+  .bar .pq-safe { background: var(--safe); }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 12px 14px; }
+  input, select, button {
+    font: inherit; color: inherit; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 7px; padding: 7px 10px;
+  }
+  input[type=text] { min-width: 240px; }
+  button { cursor: pointer; background: var(--accent); color: #fff; border-color: transparent; font-weight: 550; }
+  button.ghost { background: var(--bg); color: var(--ink); border-color: var(--line); font-weight: 450; }
+  button:disabled { opacity: .5; cursor: default; }
+
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+       color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px;
+          font-size: 11px; font-weight: 650; letter-spacing: .03em; border: 1px solid; }
+  .pill.critical { color: var(--critical); border-color: var(--critical); }
+  .pill.high { color: var(--high); border-color: var(--high); }
+  .pill.medium { color: var(--medium); border-color: var(--medium); }
+  .pill.low { color: var(--low); border-color: var(--low); }
+  .pill.pq-safe { color: var(--safe); border-color: var(--safe); }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; }
+  .muted { color: var(--muted); }
+  .detail td { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+  .detail h4 { margin: 12px 0 6px; font-size: 12px; text-transform: uppercase;
+               letter-spacing: .06em; color: var(--muted); }
+  .detail ul { margin: 0; padding-left: 18px; }
+  .detail li { margin: 2px 0; }
+  .grid2 { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .trip { color: var(--critical); font-weight: 650; }
+  .hold { color: var(--low); }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+  .err { color: var(--critical); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Q-DARPAN</h1>
+  <span class="sub">cryptographic discovery &middot; CBOM &middot; quantum risk</span>
+  <span class="spacer"></span>
+  <select id="runPicker" title="Scan run"></select>
+  <button class="ghost" id="refresh">Refresh</button>
+  <a id="cbomLink" class="ghost" style="display:none"></a>
+</header>
+
+<main>
+  <section id="scanPanel">
+    <h2>New scan</h2>
+    <div class="panel controls">
+      <input type="text" id="targets" placeholder="./repo  ./bin/daemon  image.tar  host:443"
+             title="Space-separated targets">
+      <label class="muted"><input type="checkbox" id="offline"> offline</label>
+      <button id="scanBtn">Scan</button>
+      <span id="scanStatus" class="muted"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Posture</h2>
+    <div class="tiles" id="tiles"></div>
+    <div style="margin-top:12px" class="bar" id="tierBar"></div>
+  </section>
+
+  <section>
+    <h2>Migration queue</h2>
+    <div class="panel">
+      <div class="controls">
+        <input type="text" id="search" placeholder="filter by asset, target or algorithm">
+        <select id="tierFilter">
+          <option value="">all tiers</option>
+          <option value="critical">critical</option>
+          <option value="high">high</option>
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="pq-safe">pq-safe</option>
+        </select>
+        <select id="surfaceFilter"><option value="">all surfaces</option></select>
+        <span class="muted" id="count"></span>
+      </div>
+      <div class="scroll">
+        <table id="queue">
+          <thead><tr>
+            <th data-sort="rank">#</th>
+            <th data-sort="tier">Tier</th>
+            <th data-sort="name">Asset</th>
+            <th data-sort="target">Target</th>
+            <th data-sort="blast">Reach</th>
+            <th data-sort="conf">Conf.</th>
+            <th data-sort="rec">Replace with</th>
+            <th data-sort="cost">Wire cost</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="empty" id="queueEmpty" style="display:none">No findings match this filter.</div>
+    </div>
+  </section>
+
+  <section id="errSection" style="display:none">
+    <h2>Coverage gaps</h2>
+    <div class="panel scroll"><table id="errTable"><tbody></tbody></table></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+// Ordering used everywhere a tier is sorted or rendered.
+var TIERS = ["critical", "high", "medium", "low", "pq-safe"];
+var state = { run: null, data: null, sort: "rank", dir: 1 };
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+function get(url) {
+  return fetch(url).then(function (r) {
+    if (!r.ok) return r.json().then(function (e) { throw new Error(e.detail || r.statusText); });
+    return r.json();
+  });
+}
+
+// -- headline numbers -----------------------------------------------------
+
+function renderTiles(s) {
+  var t = [
+    ["assets", s.assets, "crypto assets"],
+    ["", s.libraries, "libraries"],
+    ["", s.costs.assets_needing_migration, "need migration"]
+  ];
+  var html = t.map(function (x) {
+    return '<div class="tile"><div class="n">' + x[1] + '</div><div class="l">' + x[2] + "</div></div>";
+  }).join("");
+
+  html += TIERS.map(function (tier) {
+    var n = s.by_tier[tier] || 0;
+    return '<div class="tile ' + tier + '"><div class="n">' + n + '</div><div class="l">' + tier + "</div></div>";
+  }).join("");
+
+  if (s.errors) {
+    html += '<div class="tile"><div class="n err">' + s.errors + '</div><div class="l">collector errors</div></div>';
+  }
+  document.getElementById("tiles").innerHTML = html;
+
+  var total = TIERS.reduce(function (a, k) { return a + (s.by_tier[k] || 0); }, 0) || 1;
+  document.getElementById("tierBar").innerHTML = TIERS.map(function (tier) {
+    var pct = ((s.by_tier[tier] || 0) / total) * 100;
+    return pct ? '<span class="' + tier + '" style="width:' + pct + '%" title="' + tier + '"></span>' : "";
+  }).join("");
+}
+
+// -- queue ----------------------------------------------------------------
+
+function costOf(entry) {
+  // Headline the field that crosses the network, not the biggest number. A
+  // private key that grew in an HSM costs an operator far less than a
+  // signature that grew on every handshake.
+  var r = entry.recommendation;
+  if (!r || !r.size_deltas || !r.size_deltas.length) return null;
+  var order = ["signature", "ciphertext", "public_key", "private_key"];
+  for (var i = 0; i < order.length; i++) {
+    for (var j = 0; j < r.size_deltas.length; j++) {
+      if (r.size_deltas[j].field === order[i]) return r.size_deltas[j];
+    }
+  }
+  return r.size_deltas[0];
+}
+
+function describeCost(d) {
+  if (!d) return '<span class="muted">&ndash;</span>';
+  var ratio = d.ratio ? " (" + d.ratio + "×)" : "";
+  return '<span class="mono">' + d.before + " &rarr; " + d.after + " B" + ratio + "</span>";
+}
+
+function rowsFor() {
+  var q = state.data ? state.data.queue : [];
+  var term = document.getElementById("search").value.toLowerCase();
+  var tier = document.getElementById("tierFilter").value;
+  var surface = document.getElementById("surfaceFilter").value;
+
+  var rows = q.filter(function (e) {
+    if (tier && e.tier !== tier) return false;
+    if (surface && (e.surfaces || []).indexOf(surface) < 0) return false;
+    if (!term) return true;
+    var hay = (e.name + " " + e.target_id + " " +
+               (e.recommendation ? e.recommendation.target : "")).toLowerCase();
+    return hay.indexOf(term) >= 0;
+  });
+
+  var key = state.sort, dir = state.dir;
+  rows.sort(function (a, b) {
+    var x, y;
+    if (key === "tier") { x = TIERS.indexOf(a.tier); y = TIERS.indexOf(b.tier); }
+    else if (key === "name") { x = a.name; y = b.name; }
+    else if (key === "target") { x = a.target_id; y = b.target_id; }
+    else if (key === "blast") { x = a.blast_radius; y = b.blast_radius; }
+    else if (key === "conf") { x = a.confidence; y = b.confidence; }
+    else if (key === "cost") { x = a.cost_bytes; y = b.cost_bytes; }
+    else if (key === "rec") { x = a.recommendation ? a.recommendation.target : ""; y = b.recommendation ? b.recommendation.target : ""; }
+    else { return 0; }  // rank: keep the engine's own ordering
+    if (x < y) return -dir;
+    if (x > y) return dir;
+    return 0;
+  });
+  return rows;
+}
+
+function renderQueue() {
+  var rows = rowsFor();
+  var body = document.querySelector("#queue tbody");
+  document.getElementById("count").textContent =
+    rows.length + " of " + (state.data ? state.data.queue.length : 0);
+  document.getElementById("queueEmpty").style.display = rows.length ? "none" : "block";
+
+  body.innerHTML = rows.map(function (e, i) {
+    var rec = e.recommendation;
+    var target = rec ? esc(rec.target) + (rec.hybrid ? ' <span class="muted">/ ' + esc(rec.hybrid) + "</span>" : "")
+                     : '<span class="muted">&ndash;</span>';
+    return '<tr class="row" data-i="' + i + '">' +
+      "<td>" + (i + 1) + "</td>" +
+      '<td><span class="pill ' + e.tier + '">' + e.tier + "</span></td>" +
+      "<td><strong>" + esc(e.name) + "</strong></td>" +
+      '<td class="mono muted">' + esc(e.target_id) + "</td>" +
+      "<td>" + e.blast_radius + "</td>" +
+      "<td>" + e.confidence.toFixed(2) + "</td>" +
+      "<td>" + target + "</td>" +
+      "<td>" + describeCost(costOf(e)) + "</td>" +
+      "</tr>";
+  }).join("");
+
+  Array.prototype.forEach.call(body.querySelectorAll("tr.row"), function (tr) {
+    tr.addEventListener("click", function () { toggleDetail(tr, rows[+tr.dataset.i]); });
+  });
+}
+
+function toggleDetail(tr, entry) {
+  var next = tr.nextElementSibling;
+  if (next && next.classList.contains("detail")) { next.remove(); return; }
+
+  var m = entry.mosca, rec = entry.recommendation;
+  var html = '<div class="grid2"><div>';
+
+  html += "<h4>Evidence</h4><ul>";
+  (entry.locations || []).forEach(function (l) { html += '<li class="mono">' + esc(l) + "</li>"; });
+  html += "</ul>";
+  html += '<p class="muted">confidence ' + entry.confidence.toFixed(2) +
+          " &middot; surfaces: " + esc((entry.surfaces || []).join(", ")) + "</p>";
+  html += "<h4>Assessment</h4><p>" + esc(entry.rationale) + "</p>";
+  html += '<p class="muted">quantum: ' + esc(entry.quantum_status) +
+          " &middot; classical: " + esc(entry.classical_status) +
+          " &middot; " + entry.security_bits + "-bit classical, " +
+          entry.quantum_security_bits + "-bit quantum</p>";
+
+  if (entry.deadlines && entry.deadlines.length) {
+    html += "<h4>Regulatory clock</h4><ul>";
+    entry.deadlines.forEach(function (d) {
+      html += "<li>" + esc(d.label) + ' <span class="muted">(' + d.years_remaining + "y)</span></li>";
+    });
+    html += "</ul>";
+  }
+
+  html += "</div><div>";
+
+  if (m) {
+    html += "<h4>Mosca &mdash; X+Y &gt; Z</h4>";
+    html += '<p class="muted">X = ' + m.x_migration_years + "y migration, Y = " +
+            m.y_shelf_life_years + "y shelf life. Trips " + m.scenarios_tripped +
+            " of " + m.total_scenarios + " scenarios.</p><ul>";
+    Object.keys(m.scenarios).forEach(function (k) {
+      var s = m.scenarios[k];
+      html += "<li>" + esc(k) + " (Z=" + s.z_years_to_crqc + "y): " +
+        (s.trips ? '<span class="trip">TRIPS</span>' : '<span class="hold">holds</span>') +
+        ', margin ' + (s.margin_years >= 0 ? "+" : "") + s.margin_years + "y</li>";
+    });
+    html += "</ul>";
+  }
+
+  if (rec) {
+    html += "<h4>Recommendation</h4>";
+    html += "<p><strong>" + esc(rec.target) + "</strong>" +
+            (rec.standard ? ' <span class="muted">(' + esc(rec.standard) + ")</span>" : "") + "</p>";
+    if (rec.hybrid) html += '<p class="muted">hybrid: ' + esc(rec.hybrid) + " (RFC 10024)</p>";
+    if (rec.alternative) html += '<p class="muted">alternative: ' + esc(rec.alternative) + "</p>";
+    if (rec.rationale) html += "<p>" + esc(rec.rationale) + "</p>";
+    if (rec.size_deltas && rec.size_deltas.length) {
+      html += "<ul>";
+      rec.size_deltas.forEach(function (d) {
+        html += '<li class="mono">' + esc(d.field) + ": " + d.before + " &rarr; " + d.after +
+          " B (" + (d.delta >= 0 ? "+" : "") + d.delta + (d.ratio ? ", " + d.ratio + "×" : "") + ")</li>";
+      });
+      html += "</ul>";
+    }
+    if (rec.latency_note) html += '<p class="muted">' + esc(rec.latency_note) + "</p>";
+  }
+
+  html += "</div></div>";
+
+  var row = document.createElement("tr");
+  row.className = "detail";
+  row.innerHTML = '<td colspan="8">' + html + "</td>";
+  tr.parentNode.insertBefore(row, tr.nextSibling);
+}
+
+// -- loading --------------------------------------------------------------
+
+function loadRun(id) {
+  if (!id) return;
+  state.run = id;
+  get("/api/runs/" + encodeURIComponent(id)).then(function (d) {
+    state.data = d;
+    renderTiles(d.summary);
+
+    var surfaces = {};
+    d.queue.forEach(function (e) { (e.surfaces || []).forEach(function (s) { surfaces[s] = 1; }); });
+    var sel = document.getElementById("surfaceFilter");
+    sel.innerHTML = '<option value="">all surfaces</option>' +
+      Object.keys(surfaces).sort().map(function (s) {
+        return '<option value="' + esc(s) + '">' + esc(s) + "</option>";
+      }).join("");
+
+    renderQueue();
+
+    var link = document.getElementById("cbomLink");
+    link.href = "/api/runs/" + encodeURIComponent(id) + "/cbom";
+    link.textContent = "CBOM";
+    link.className = "ghost";
+    link.style.cssText = "display:inline-block;padding:7px 10px;border:1px solid var(--line);" +
+                         "border-radius:7px;text-decoration:none;color:inherit";
+
+    var errs = d.errors || [];
+    document.getElementById("errSection").style.display = errs.length ? "block" : "none";
+    document.querySelector("#errTable tbody").innerHTML = errs.slice(0, 100).map(function (e) {
+      return "<tr><td class='mono'>" + esc(e.path || e.target_id) + "</td><td>" +
+        esc(e.collector) + "/" + esc(e.phase) + "</td><td class='muted'>" + esc(e.reason) + "</td></tr>";
+    }).join("");
+  }).catch(function (e) {
+    document.getElementById("tiles").innerHTML = '<div class="tile"><div class="n err">!</div><div class="l">' + esc(e.message) + "</div></div>";
+  });
+}
+
+function loadRuns(select) {
+  return get("/api/runs").then(function (d) {
+    var picker = document.getElementById("runPicker");
+    picker.innerHTML = d.runs.map(function (r) {
+      return '<option value="' + esc(r.id) + '">' + esc(r.id) + " (" + r.target_count + " targets)</option>";
+    }).join("");
+    if (!d.runs.length) {
+      document.getElementById("tiles").innerHTML =
+        '<div class="tile"><div class="n">0</div><div class="l">no scans yet &mdash; run one above</div></div>';
+      return;
+    }
+    picker.value = select || d.runs[0].id;
+    loadRun(picker.value);
+  });
+}
+
+// -- wiring ---------------------------------------------------------------
+
+document.getElementById("runPicker").addEventListener("change", function (e) { loadRun(e.target.value); });
+document.getElementById("refresh").addEventListener("click", function () { loadRuns(state.run); });
+["search", "tierFilter", "surfaceFilter"].forEach(function (id) {
+  document.getElementById(id).addEventListener("input", renderQueue);
+  document.getElementById(id).addEventListener("change", renderQueue);
+});
+
+Array.prototype.forEach.call(document.querySelectorAll("#queue th[data-sort]"), function (th) {
+  th.addEventListener("click", function () {
+    var key = th.dataset.sort;
+    state.dir = (state.sort === key) ? -state.dir : 1;
+    state.sort = key;
+    renderQueue();
+  });
+});
+
+document.getElementById("scanBtn").addEventListener("click", function () {
+  var raw = document.getElementById("targets").value.trim();
+  if (!raw) return;
+  var btn = this, status = document.getElementById("scanStatus");
+  btn.disabled = true;
+  status.textContent = "scanning…";
+  status.className = "muted";
+
+  fetch("/api/scan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      targets: raw.split(/\s+/),
+      offline: document.getElementById("offline").checked,
+      run_id: "web"
+    })
+  }).then(function (r) {
+    return r.json().then(function (d) { if (!r.ok) throw new Error(d.detail || r.statusText); return d; });
+  }).then(function (d) {
+    status.textContent = d.scan.findings + " findings, " + d.scan.errors + " errors";
+    return loadRuns(d.run_id);
+  }).catch(function (e) {
+    status.textContent = e.message;
+    status.className = "err";
+  }).then(function () { btn.disabled = false; });
+});
+
+loadRuns();
+</script>
+</body>
+</html>

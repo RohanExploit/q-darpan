@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Mapping, Optional, Tuple
 
@@ -53,6 +54,28 @@ _JCA_PADDING = {
 }
 
 _MAX_SOURCE_BYTES = 4 * 1024 * 1024
+
+#: Grammars are cached for the life of the process, not per collector instance.
+#: A tree-sitter Language wraps a pointer owned by its grammar module; building
+#: a fresh one for every scan churns native handles for no benefit, and the
+#: parse trees that reference them outlive the call that produced them.
+_LANGUAGES: Dict[str, Any] = {}
+_LANGUAGE_LOCK = threading.Lock()
+
+
+def _grammar(language: str):
+    """Return the shared Language for a grammar, loading it once."""
+    grammar = _LANGUAGES.get(language)
+    if grammar is not None:
+        return grammar
+    with _LANGUAGE_LOCK:
+        grammar = _LANGUAGES.get(language)
+        if grammar is None:
+            from tree_sitter import Language
+
+            module = __import__("tree_sitter_%s" % language)
+            grammar = _LANGUAGES[language] = Language(module.language())
+    return grammar
 
 
 def _load_rules() -> Mapping[str, Any]:
@@ -98,7 +121,8 @@ class SourceASTCollector(Collector):
             k: v for k, v in self._rules.get("include_libraries", {}).items()
             if not k.startswith("$")
         }
-        self._parsers: Dict[str, Any] = {}
+        # Parsers are per-thread; grammars are process-wide. See _parser().
+        self._local = threading.local()
         self._index = {
             language: self._index_rules(self._rules.get(language, []))
             for language in ("c", "java", "go")
@@ -119,22 +143,31 @@ class SourceASTCollector(Collector):
     # -- parser management ------------------------------------------------
 
     def _parser(self, language: str):
-        """Load a grammar lazily.
+        """Load a grammar lazily, one parser per thread.
 
-        A scan restricted to Java should not pay to load the C++ grammar, and a
-        missing grammar wheel must degrade to "cannot scan this language"
-        rather than crashing the run.
+        tree-sitter ``Parser`` objects are not thread-safe: sharing one across
+        the scan's worker pool segfaults the interpreter rather than raising,
+        which on a real estate would look like the tool randomly dying
+        part-way through. ``Language`` objects are immutable and safe to share,
+        so only the parser is thread-local.
+
+        A missing grammar wheel degrades to "cannot scan this language" instead
+        of taking down the run.
         """
-        if language in self._parsers:
-            return self._parsers[language]
-        try:
-            from tree_sitter import Language, Parser
+        cache = getattr(self._local, "parsers", None)
+        if cache is None:
+            cache = self._local.parsers = {}
+        if language in cache:
+            return cache[language]
 
-            module = __import__("tree_sitter_%s" % language)
-            parser = Parser(Language(module.language()))
+        try:
+            from tree_sitter import Parser
+
+            parser = Parser(_grammar(language))
         except Exception:
             parser = None
-        self._parsers[language] = parser
+
+        cache[language] = parser
         return parser
 
     @staticmethod
